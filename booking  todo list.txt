@@ -1,0 +1,19 @@
+1. first create the basic design to complite the bookin system 
+
+
+3. when click on filter btn then redirect to a page call "search-rv"
+4.On "search-rv" page show all filter like "date, aminates,Site Types, All Sites, Lodging ,RV Sites , Tent Sites"
+5. Show price filter 
+6. Park  Features Arcade Arts & Crafts Basketball Bathrooms etc. 
+7. Site Amenities
+
+8. After complite "search-rv" then create a new page "park-detail" page. This page should be create automatically on installing the plugin. 
+
+9. In This "park-detail" page should show the park map, spot image and also the option to select another spto or lot.
+
+10. check abavality 
+
+complite basic design 
+
+11. add session add to chart page  
+2. Make a Date filter style this date show any where using the short code [booking_form_check_availability];
