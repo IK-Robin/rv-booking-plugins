@@ -1,0 +1,69 @@
+.rvbs-search-rv{
+
+
+    .filster_section {
+      position: sticky;
+      top: 0; /* the height of the header (60px) + its bottom margin (20px) */
+    height: max-content;
+      margin-bottom: 20px;
+      }
+
+      .show_aval_room {
+        padding-left: 20px;
+        flex-grow: 1;
+        width: 75%;
+      }
+
+
+      
+  // .content {
+  //   background: rgb(200, 200, 200);
+  //   height: 300px;
+  //   padding: 20px;
+  //   margin-bottom: 20px;
+  // }
+
+  
+
+  @media screen and (max-width: 992px) {
+    .filster_section {
+      width: 100%;
+      z-index: 11;
+      top: 0px;
+      max-height: 100vh;
+    }
+  
+    /* Ensure the collapsible filter content scrolls */
+    #rooms_filter {
+      max-height: 100vh; /* Adjust based on requirement */
+      overflow-y: auto;
+    }
+  }
+}
+
+
+.flex-container {
+  display: flex;
+}
+
+aside {
+  position: sticky;
+  top: 80px; /* the height of the header (60px) + its bottom margin (20px) */
+  background: rgb(255, 100, 100);
+  padding: 20px;
+  width: 20%;
+  height: 500px;
+  margin-bottom: 20px;
+}
+
+main {
+  padding-left: 20px;
+  flex-grow: 1;
+}
+
+.content {
+  background: rgb(200, 200, 200);
+  height: 300px;
+  padding: 20px;
+  margin-bottom: 20px;
+}

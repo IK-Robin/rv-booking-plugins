@@ -211,37 +211,7 @@ $post_types = get_post_types(array(), 'objects');
 
 
   <?php get_footer(); ?>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    jQuery(document).ready(function($) {
-      $('#load_more').click(function() {
-        var button = $(this),
-          page = button.data('page'),
-          ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
 
-        $.ajax({
-          url: ajaxurl,
-          type: 'POST',
-          data: {
-            action: 'load_more_posts',
-            page: page
-          },
-          beforeSend: function() {
-            button.text('Loading...'); // Change button text while loading
-          },
-          success: function(response) {
-            if (response.trim() !== '') {
-              $('#show_aval_room').append(response);
-              button.data('page', page + 1);
-              button.text('Load More');
-            } else {
-              button.remove(); // Remove button when no more posts
-            }
-          }
-        });
-      });
-    });
-  </script>
 
 </body>
 

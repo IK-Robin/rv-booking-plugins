@@ -10,32 +10,10 @@ $post_types = get_post_types(array(), 'objects');
 
 ?>
 <style>
-  body {
-    margin: 0 20px;
-  }
+ 
 
 
 
-  .flex-container {
-    display: flex;
-  }
-
-  .filster_section {
-    position: sticky;
-    top: 20px;
-    /* the height of the header (60px) + its bottom margin (20px) */
-
-    /* padding: 20px; */
-    width: 25%;
-    height: 70vh;
-    margin-bottom: 20px;
-  }
-
-  main {
-    padding-left: 20px;
-    flex-grow: 1;
-    width: 75%;
-  }
 
   .content {
     background: rgb(200, 200, 200);
@@ -45,16 +23,17 @@ $post_types = get_post_types(array(), 'objects');
   }
 </style>
 
-<body class="bg-light">
+
+<div class="bg-light rvbs-search-rv">
 
 
-  <!-- Our Rooms Section -->
-  <div class="my-5 px-4">
+ 
+
+ <!-- Our Rooms Section -->
+ <div class="py-5 px-4 bg-light">
     <h2 class="mt-4 mb-1 pt-4 text-center font-bold merinda">OUR ROOMS</h2>
     <div class="h-line bg-dark mb-5"></div>
   </div>
-
-
 
 
 
@@ -105,6 +84,54 @@ $post_types = get_post_types(array(), 'objects');
             </div>
           </div>
         </div>
+        <!-- Guest Filters -->
+        <div class="bg-light rounded mb-3 p-3">
+          <h6 class="mb-3 d-flex justify-content-between">GUEST
+            <span id="guest_reset" onclick="clear_guest()" class="text-secondary btn btn-sm">Reset</span>
+          </h6>
+          <div class="mb-2 d-flex">
+            <div class="guest me-3">
+              <label for="adult" class="form-label">Adults</label>
+              <input min="1" type="number" oninput="guest_filter()" class="form-control shadow-none" id="adult" />
+            </div>
+            <div class="guest">
+              <label for="children" class="form-label">Children</label>
+              <input min="0" type="number" oninput="guest_filter()" class="form-control shadow-none" id="children" />
+            </div>
+          </div>
+        </div>
+        <!-- Guest Filters -->
+        <div class="bg-light rounded mb-3 p-3">
+          <h6 class="mb-3 d-flex justify-content-between">GUEST
+            <span id="guest_reset" onclick="clear_guest()" class="text-secondary btn btn-sm">Reset</span>
+          </h6>
+          <div class="mb-2 d-flex">
+            <div class="guest me-3">
+              <label for="adult" class="form-label">Adults</label>
+              <input min="1" type="number" oninput="guest_filter()" class="form-control shadow-none" id="adult" />
+            </div>
+            <div class="guest">
+              <label for="children" class="form-label">Children</label>
+              <input min="0" type="number" oninput="guest_filter()" class="form-control shadow-none" id="children" />
+            </div>
+          </div>
+        </div>
+        <!-- Guest Filters -->
+        <div class="bg-light rounded mb-3 p-3">
+          <h6 class="mb-3 d-flex justify-content-between">GUEST
+            <span id="guest_reset" onclick="clear_guest()" class="text-secondary btn btn-sm">Reset</span>
+          </h6>
+          <div class="mb-2 d-flex">
+            <div class="guest me-3">
+              <label for="adult" class="form-label">Adults</label>
+              <input min="1" type="number" oninput="guest_filter()" class="form-control shadow-none" id="adult" />
+            </div>
+            <div class="guest">
+              <label for="children" class="form-label">Children</label>
+              <input min="0" type="number" oninput="guest_filter()" class="form-control shadow-none" id="children" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -115,7 +142,7 @@ $post_types = get_post_types(array(), 'objects');
 
       <!-- Room Cards -->
       <div class="col-lg-9 col-md-12" id="room_data">
-        <div id="show_aval_room">
+        <div id="show_aval_room_container">
 
           <div id="show_aval_room">
             <?php
@@ -171,11 +198,12 @@ $post_types = get_post_types(array(), 'objects');
     </div>
   </div>
 
-
-
+<?php 
 
 
 
 
 
 get_footer();
+?>
+
