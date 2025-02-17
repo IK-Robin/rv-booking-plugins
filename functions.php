@@ -15,6 +15,12 @@ require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/all-shortcode.php';
 require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-db-handel/rvbs-register-all-db-action.php';
 
 
+
+// register the custom post type here
+// require_once RVBS_BOOKING_PLUGIN_DIR . 'custom_post.php';
+require_once RVBS_BOOKING_PLUGIN_DIR . 'custom_post_deepseek.php';
+
+
 // // Hook to include custom template from plugin
 
 // function my_custom_plugin_add_template($templates) {
