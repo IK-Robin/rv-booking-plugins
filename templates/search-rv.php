@@ -172,7 +172,11 @@ $post_types = get_post_types(array(), 'objects');
                         <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
                       </h5>
                       <p class="card-text"><?php the_excerpt(); ?></p>
-                      <a href="<?php the_permalink(); ?>" class="btn btn-primary">Read More</a>
+                      <a href="<?php echo home_url('/book-now?post_id=' . get_the_ID() . '&date=' . get_the_date('Y-m-d')); ?>" 
+   class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+   Book Now
+</a>
+
                     </div>
                     <!-- Third Section (Price) -->
                     <div class="col-md-3">

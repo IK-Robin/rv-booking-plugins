@@ -53,7 +53,10 @@ function booking_form_check_availability() {
 }
 
 // Register the shortcode
+
 add_shortcode('booking_form_check_availability', 'booking_form_check_availability');
+
+add_filter('widget_text', 'do_shortcode');
 
 
 ?>
