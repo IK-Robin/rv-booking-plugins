@@ -148,7 +148,8 @@ $post_types = get_post_types(array(), 'objects');
             <?php
             // Fetch initial 15 posts
             $query = new WP_Query(array(
-              'post_type'      => 'post',
+              'post_type'      => 'rv-lots',
+
               'posts_per_page' => 15,
               'paged'          => 1
             ));
