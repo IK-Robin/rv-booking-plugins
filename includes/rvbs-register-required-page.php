@@ -46,6 +46,7 @@ add_filter('theme_page_templates', 'my_custom_plugin_add_templates');
 function my_custom_plugin_add_templates($templates) {
     $templates['../templates/search-rv.php'] = 'Search RV';
     $templates['../templates/rvbs-book-now.php'] = 'Book Now';
+    $templates['../templates/catagory_filter.php'] = 'Category Filter';
     return $templates;
 }
 
