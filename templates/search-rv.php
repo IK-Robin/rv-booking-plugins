@@ -4,9 +4,24 @@ Template Name: Search RV
 */
 get_header();
 
-// Get all post types including details
-$post_types = get_post_types(array(), 'objects');
 
+// $taxonomies = array('site_type', 'park_feature', 'site_amenity'); // Add your custom taxonomies here
+
+// foreach ($taxonomies as $taxonomy) {
+//     $terms = get_terms(array(
+//         'taxonomy'   => $taxonomy,
+//         'hide_empty' => false, // Show even if no posts are assigned
+//     ));
+
+//     if (!empty($terms) && !is_wp_error($terms)) {
+//         echo '<h3>' . esc_html(get_taxonomy($taxonomy)->label) . '</h3>';
+//         echo '<ul>';
+//         foreach ($terms as $term) {
+//             echo '<li><a href="' . esc_url(get_term_link($term)) . '">' . esc_html($term->name) . '</a> (' . esc_html($term->count) . ')</li>';
+//         }
+//         echo '</ul>';
+//     }
+// }
 
 ?>
 <style>
@@ -22,6 +37,91 @@ $post_types = get_post_types(array(), 'objects');
     margin-bottom: 20px;
   }
 </style>
+
+
+
+<div class="bg-light rounded mb-3 p-3">
+  <h6 class="mb-3">Filter by Site Type</h6>
+  <ul class="list-unstyled">
+    <li><button class="btn btn-link filter-btn" data-filter="all">All Sites</button></li>
+    <?php
+    $site_types = get_terms(array(
+        'taxonomy' => 'site_type',
+        'hide_empty' => false,
+    ));
+    foreach ($site_types as $type) {
+        echo '<li><button class="btn btn-link filter-btn" data-filter="' . esc_attr($type->slug) . '">' . esc_html($type->name) . '</button></li>';
+    }
+    ?>
+  </ul>
+</div>
+<!-- script for filtering  -->
+<script>
+jQuery(document).ready(function($) {
+    function filterRVLots() {
+        var siteType = $('.filter-btn.active').data('filter') || 'all'; // Get active site type
+        var selectedFeatures = [];
+
+        $('.feature-filter:checked').each(function() {
+            selectedFeatures.push($(this).val());
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: '<?php echo admin_url("admin-ajax.php"); ?>',
+            data: {
+                action: 'filter_rv_lots',
+                site_type: siteType,
+                features: selectedFeatures
+            },
+            beforeSend: function() {
+                $('#show_aval_room').html('<p class="text-center">Loading...</p>');
+            },
+            success: function(response) {
+                $('#show_aval_room').html(response);
+            }
+        });
+    }
+
+    // Handle Site Type Filter Click
+    $('.filter-btn').on('click', function() {
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+        filterRVLots();
+    });
+
+    // Handle Park Feature Checkbox Change
+    $('.feature-filter').on('change', function() {
+        filterRVLots();
+    });
+});
+</script>
+
+
+
+
+
+
+<!-- add feature for the custom checkbox and filter the post  -->
+
+<div class="bg-light rounded mb-3 p-3">
+  <h6 class="mb-3">Filter by Park Features</h6>
+  <ul class="list-unstyled">
+    <?php
+    $features = get_terms(array(
+        'taxonomy'   => 'park_feature',
+        'hide_empty' => false,
+    ));
+    foreach ($features as $feature) {
+        echo '<li>
+            <input type="checkbox" class="feature-filter" value="' . esc_attr($feature->slug) . '" id="feature-' . esc_attr($feature->slug) . '">
+            <label for="feature-' . esc_attr($feature->slug) . '">' . esc_html($feature->name) . '</label>
+        </li>';
+    }
+    ?>
+  </ul>
+</div>
+
 
 
 <div class="bg-light rvbs-search-rv">
@@ -172,7 +272,23 @@ $post_types = get_post_types(array(), 'objects');
                       <h5 class="card-title">
                         <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
                       </h5>
-                      <p class="card-text"><?php the_excerpt(); ?></p>
+                      <p class="card-text"><?php the_excerpt();
+                      
+                      
+                  
+
+                      
+                      ?>
+                      
+                      <?php 
+                        $features = get_the_terms(get_the_ID(), 'park_feature');
+                        if ($features && !is_wp_error($features)) :
+                            echo '<p><strong>Features:</strong> ';
+                            $feature_names = wp_list_pluck($features, 'name');
+                            echo implode(', ', $feature_names);
+                            echo '</p>';
+                        endif;
+                        ?></p>
                       <a href="<?php echo home_url('/book-now?post_id=' . get_the_ID() . '&date=' . get_the_date('Y-m-d')); ?>" 
    class="btn btn-primary" target="_blank" rel="noopener noreferrer">
    Book Now
