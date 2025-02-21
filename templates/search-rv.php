@@ -66,14 +66,25 @@ jQuery(document).ready(function($) {
             selectedFeatures.push($(this).val());
         });
 
+        // select by class list aminets 
+        var selectedAminets = [];
+
+        $('.aminets-filter:checked').each(function (){
+          selectedAminets.push($(this).val());
+        });
+
+
+        
+
         $.ajax({
             type: 'POST',
             url: '<?php echo admin_url("admin-ajax.php"); ?>',
             data: {
                 action: 'filter_rv_lots',
                 site_type: siteType,
-                features: selectedFeatures
-            },
+                features: selectedFeatures,
+                aminets:selectedAminets,
+            }, 
             beforeSend: function() {
                 $('#show_aval_room').html('<p class="text-center">Loading...</p>');
             },
@@ -94,6 +105,9 @@ jQuery(document).ready(function($) {
     $('.feature-filter').on('change', function() {
         filterRVLots();
     });
+    $('.aminets-filter').on('change',function (ev) {
+      filterRVLots();
+    })
 });
 </script>
 
@@ -118,6 +132,33 @@ jQuery(document).ready(function($) {
             <label for="feature-' . esc_attr($feature->slug) . '">' . esc_html($feature->name) . '</label>
         </li>';
     }
+    ?>
+  </ul>
+</div>
+
+<!-- filter the aminets  -->
+
+
+<div class="bg-light rounded mb-5 p-4">
+  <h6 class="mb-3">Filter by aminets</h6>
+  <ul class="list-unstyled">
+    <?php
+$aminetes = get_terms([
+  
+  'taxonomy' => 'site_amenity',
+  'hide_empty' => false,
+]);
+
+    
+foreach ($aminetes as $amenity) {
+  echo  '<li>
+
+  <input type="checkbox" class="aminets-filter" value="' .esc_attr($amenity->slug) .'"  id="amenity-' . esc_attr($amenity->slug) . '">
+
+  <label for= "amenity-' . esc_attr($amenity->slug) . '"> ' . esc_html($amenity->name) . '</label>
+          </li>';
+}
+    
     ?>
   </ul>
 </div>
@@ -289,6 +330,18 @@ jQuery(document).ready(function($) {
                             echo '</p>';
                         endif;
                         ?></p>
+
+                        <p>
+                        <?php 
+                        $amenities = get_the_terms(get_the_ID(), 'site_amenity');
+                        if ($amenities && !is_wp_error($amenities)) :
+                            echo '<p><strong>Amenities:</strong> ';
+                            $amenity_names = wp_list_pluck($amenities, 'name');
+                            echo implode(', ', $amenity_names);
+                            echo '</p>';
+                        endif;
+                        ?>
+                        </p>
                       <a href="<?php echo home_url('/book-now?post_id=' . get_the_ID() . '&date=' . get_the_date('Y-m-d')); ?>" 
    class="btn btn-primary" target="_blank" rel="noopener noreferrer">
    Book Now
