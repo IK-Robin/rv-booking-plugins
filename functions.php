@@ -57,6 +57,7 @@ add_action('wp_ajax_nopriv_load_more_posts', 'load_more_posts');
 function filter_rv_lots() {
     $site_type = isset($_POST['site_type']) ? sanitize_text_field($_POST['site_type']) : '';
     $selected_features = isset($_POST['features']) ? $_POST['features'] : array();
+    $selected_aminetis = isset($_POST['aminets']) ? $_POST['aminets'] : array();
 
     $args = array(
         'post_type'      => 'rv-lots',
@@ -80,6 +81,18 @@ function filter_rv_lots() {
             'terms'    => $selected_features,
             'operator' => 'AND', // Ensures the post has ALL selected features
         );
+    }
+
+    // filter by the park aminetis 
+
+    if(!empty($selected_aminetis)){
+        $args['tax_query'][] = array(
+            'taxonomy' => 'site_amenity',
+            'field' => 'slug',
+            'terms' => $selected_aminetis,
+            'operator' => 'AND',
+        );
+
     }
 
     $query = new WP_Query($args);
@@ -114,13 +127,15 @@ function filter_rv_lots() {
 
                         <!-- ✅ Show Available Amenities -->
                         <?php 
-                        $amenities = get_the_terms(get_the_ID(), 'site_amenities');
-                        if ($amenities && !is_wp_error($amenities)) :
-                            echo '<p><strong>Amenities:</strong> ';
-                            $amenity_names = wp_list_pluck($amenities, 'name');
-                            echo implode(', ', $amenity_names);
-                            echo '</p>';
-                        endif;
+                          
+                          $amenities = get_the_terms(get_the_ID(), 'site_amenity');
+                          if ($amenities && !is_wp_error($amenities)) :
+                              echo '<p><strong>Amenities:</strong> ';
+                              $amenity_names = wp_list_pluck($amenities, 'name');
+                              echo implode(', ', $amenity_names);
+                              echo '</p>';
+                          endif;
+                    
                         ?>
 
                         <a href="<?php echo home_url('/book-now?post_id=' . get_the_ID()); ?>" class="btn btn-primary">
