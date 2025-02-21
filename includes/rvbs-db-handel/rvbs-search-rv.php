@@ -6,8 +6,8 @@ function load_more_posts() {
     $paged = $_POST['page']; // Get the page number from AJAX request
 
     $query = new WP_Query(array(
-        'post_type'      => 'post',
-        'posts_per_page' => 40, // Load 10 more posts
+        'post_type'      => 'rv-lots',
+        'posts_per_page' => 10, // Load 10 more posts 
         'paged'          => $paged
     ));
 
