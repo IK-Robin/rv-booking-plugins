@@ -291,7 +291,7 @@ foreach ($aminetes as $amenity) {
             $query = new WP_Query(array(
               'post_type'      => 'rv-lots',
 
-              'posts_per_page' => 15,
+              'posts_per_page' => 10,
               'paged'          => 1
             ));
 

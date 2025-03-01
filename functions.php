@@ -47,11 +47,12 @@ require_once RVBS_BOOKING_PLUGIN_DIR . 'custom_post_deepseek.php';
 add_action('wp_ajax_load_more_posts', 'load_more_posts');
 add_action('wp_ajax_nopriv_load_more_posts', 'load_more_posts');
 
+          
 
 
 
 
-
+             
 
 // filete the site using site type taxonomy 
 function filter_rv_lots() {
