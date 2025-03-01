@@ -133,9 +133,7 @@ function rvbs_register_custom_taxonomies()
 }
 add_action('init', 'rvbs_register_custom_taxonomies', 0);
 
-
-
-
+// Add all meta boxes
 function rvbs_add_rv_lots_meta_boxes()
 {
     add_meta_box(
@@ -148,16 +146,76 @@ function rvbs_add_rv_lots_meta_boxes()
     );
 
     add_meta_box(
-        'rv_lots_images',
-        __('Additional Images', 'rv-booking-plugin'),
-        'rv_lots_images_callback',
+        'rv-lots_guest',
+        __('Guest Details', 'rv-booking-plugin'),
+        'rv_lots_guest_callback',
         'rv-lots',
         'normal',
         'high'
     );
+
+    // Add Images Gallery meta box
+    // add_meta_box(
+    //     'rv_lot_images',
+    //     __('Images Gallery', 'rv-booking-plugin'),
+    //     'rv_lot_images_callback',
+    //     'rv-lots',
+    //     'normal',
+    //     'high'
+    // );
 }
 add_action('add_meta_boxes', 'rvbs_add_rv_lots_meta_boxes');
 
+// Callback for Images Gallery meta box
+// Callback for Images Gallery meta box
+
+
+
+
+
+
+
+// Save meta box data for Price Details, Additional Images, and Guest Details.
+function rvbs_save_rv_lots_meta($post_id)
+{
+    // Verify nonces.
+    if (
+        !isset($_POST['rv_lots_price_nonce']) || !wp_verify_nonce($_POST['rv_lots_price_nonce'], 'rv_lots_price_nonce') ||
+        !isset($_POST['rv_lots_guest_nonce']) || !wp_verify_nonce($_POST['rv_lots_guest_nonce'], 'rv_lots_guest_nonce')
+    ) {
+        return;
+    }
+
+    // Check autosave.
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Check permissions.
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Save Price Details.
+    if (isset($_POST['rv_lots_price'])) {
+        update_post_meta($post_id, '_rv_lots_price', sanitize_text_field($_POST['rv_lots_price']));
+    }
+
+    // Save Guest Details.
+    if (isset($_POST['rv_lots_guest'])) {
+        update_post_meta($post_id, '_rv_lots_guest', sanitize_textarea_field($_POST['rv_lots_guest']));
+    }
+
+    // Save Images Gallery.
+    // if (isset($_POST['rv_lot_images'])) {
+    //     $images = array_filter(array_map('trim', explode(',', sanitize_text_field($_POST['rv_lot_images']))));
+    //     update_post_meta($post_id, '_rv_lot_images', $images);
+    // }
+}
+add_action('save_post', 'rvbs_save_rv_lots_meta');
+
+
+// Callback for Price Details meta box
 function rv_lots_price_callback($post)
 {
     wp_nonce_field('rv_lots_price_nonce', 'rv_lots_price_nonce');
@@ -166,49 +224,119 @@ function rv_lots_price_callback($post)
     echo '<input type="text" id="rv_lots_price" name="rv_lots_price" value="' . esc_attr($price) . '" size="25" />';
 }
 
-function rv_lots_images_callback($post)
+
+// Callback for Guest Details meta box
+function rv_lots_guest_callback($post)
 {
-    wp_nonce_field('rv_lots_images_nonce', 'rv_lots_images_nonce');
-    $images = get_post_meta($post->ID, '_rv_lots_images', true);
-    echo '<label for="rv_lots_images">' . __('Additional Images', 'rv-booking-plugin') . '</label>';
-    echo '<input type="text" id="rv_lots_images" name="rv_lots_images" value="' . esc_attr($images) . '" size="25" />';
-    echo '<p class="description">' . __('Enter image URLs separated by commas.', 'rv-booking-plugin') . '</p>';
+    wp_nonce_field('rv_lots_guest_nonce', 'rv_lots_guest_nonce');
+    $guest_details = get_post_meta($post->ID, '_rv_lots_guest', true);
+    echo '<label for="rv_lots_guest">' . __('Guest Details', 'rv-booking-plugin') . '</label>';
+    echo '<input id="rv_lots_guest" name="rv_lots_guest" type="number" value="' . esc_attr($guest_details) . '" />';
+    echo '<p class="description">' . __('Enter guest-related details such as maximum occupancy, rules, etc.', 'rv-booking-plugin') . '</p>';
 }
 
-function rvbs_save_rv_lots_meta($post_id)
-{
-    if (!isset($_POST['rv_lots_price_nonce']) || !wp_verify_nonce($_POST['rv_lots_price_nonce'], 'rv_lots_price_nonce')) {
-        return;
-    }
 
-    if (!isset($_POST['rv_lots_images_nonce']) || !wp_verify_nonce($_POST['rv_lots_images_nonce'], 'rv_lots_images_nonce')) {
-        return;
-    }
 
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-        return;
-    }
 
-    if (!current_user_can('edit_post', $post_id)) {
-        return;
-    }
+// add metabox to save the image gallery 
 
-    if (isset($_POST['rv_lots_price'])) {
-        update_post_meta($post_id, '_rv_lots_price', sanitize_text_field($_POST['rv_lots_price']));
-    }
+// Add Meta Box
+function rvbs_add_rv_lots_meta_box() {
+    add_meta_box(
+        'rv_lot_images_meta',
+        __('Select Images', 'rv-booking-plugin'),
+        'rv_lot_images_meta_callback',
+        'rv-lots',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'rvbs_add_rv_lots_meta_box');
 
-    if (isset($_POST['rv_lots_images'])) {
-        update_post_meta($post_id, '_rv_lots_images', sanitize_text_field($_POST['rv_lots_images']));
+// Meta Box Callback Function
+function rv_lot_images_meta_callback($post) {
+    $images = get_post_meta($post->ID, '_rv_lot_images', true);
+    $images = !empty($images) ? explode(',', $images) : array();
+    ?>
+    <div>
+        <button class="button select-images">Select Images</button>
+        <div id="image_preview" style="margin-top:10px;">
+            <?php foreach ($images as $image_id):
+                $image_url = wp_get_attachment_image_src($image_id, 'thumbnail');
+                if ($image_url): ?>
+                    <div class="image-item" data-id="<?php echo esc_attr($image_id); ?>" style="display:inline-block; position:relative; margin:5px;">
+                        <img src="<?php echo esc_url($image_url[0]); ?>" width="100" height="100" style="display:block;" />
+                        <span class="remove-image" style="position:absolute; top:0; right:0; background:#f00; color:#fff; cursor:pointer; padding:2px 5px;">&times;</span>
+                    </div>
+                <?php endif; endforeach; ?>
+        </div>
+        <input type="hidden" name="rv_lot_images" id="rv_lot_images" value="<?php echo esc_attr(implode(',', $images)); ?>" />
+    </div>
+    <script>
+        jQuery(document).ready(function($) {
+            var frame;
+            $('.select-images').on('click', function(e) {
+                e.preventDefault();
+                
+                var imageIDs = $('#rv_lot_images').val() ? $('#rv_lot_images').val().split(',') : [];
+                frame = wp.media({
+                    title: 'Select Images',
+                    button: { text: 'Use selected images' },
+                    multiple: true
+                });
+                
+                frame.on('select', function() {
+                    var selection = frame.state().get('selection');
+                    var previewDiv = $('#image_preview');
+                    
+                    selection.each(function(attachment) {
+                        attachment = attachment.toJSON();
+                        if ($.inArray(attachment.id.toString(), imageIDs) === -1) {
+                            imageIDs.push(attachment.id);
+                            previewDiv.append('<div class="image-item" data-id="' + attachment.id + '" style="display:inline-block; position:relative; margin:5px;">' +
+                                '<img src="' + attachment.sizes.thumbnail.url + '" width="100" height="100" style="display:block;" />' +
+                                '<span class="remove-image" style="position:absolute; top:0; right:0; background:#f00; color:#fff; cursor:pointer; padding:2px 5px;">&times;</span>' +
+                                '</div>');
+                        }
+                    });
+                    
+                    $('#rv_lot_images').val(imageIDs.join(','));
+                });
+                frame.open();
+            });
+            
+            $('#image_preview').on('click', '.remove-image', function() {
+                var $parent = $(this).closest('.image-item');
+                var id = $parent.data('id').toString();
+                $parent.remove();
+                var imageIDs = $('#rv_lot_images').val().split(',');
+                imageIDs = imageIDs.filter(function(item) { return item !== id; });
+                $('#rv_lot_images').val(imageIDs.join(','));
+            });
+        });
+    </script>
+    <?php
+}
+
+// Save Meta Box Data
+function save_rv_lot_images_meta($post_id) {
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (!current_user_can('edit_post', $post_id)) return;
+    if (!isset($_POST['rv_lot_images'])) return;
+    $image_ids = sanitize_text_field($_POST['rv_lot_images']);
+    if (!empty($image_ids)) {
+        update_post_meta($post_id, '_rv_lot_images', $image_ids);
+    } else {
+        delete_post_meta($post_id, '_rv_lot_images');
     }
 }
-add_action('save_post', 'rvbs_save_rv_lots_meta');
+add_action('save_post_rv-lots', 'save_rv_lot_images_meta');
 
-function rvbs_enqueue_admin_scripts($hook)
-{
-    if ('post.php' !== $hook && 'post-new.php' !== $hook) {
-        return;
-    }
+// Enqueue WordPress Media Uploader
+function rvbs_enqueue_admin_scripts($hook) {
+    if ('post.php' !== $hook && 'post-new.php' !== $hook) return;
     wp_enqueue_media();
-    wp_enqueue_script('rvbs-admin-script', RVBS_BOOKING_PLUGIN_URL . 'js/admin.js', array('jquery'), PLUGIN_VER, true);
 }
 add_action('admin_enqueue_scripts', 'rvbs_enqueue_admin_scripts');
+
+// add metabox to save the image gallery 
