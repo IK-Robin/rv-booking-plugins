@@ -1,0 +1,20 @@
+.cbnp-post-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.cbnp-post-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    width: calc(33.333% - 20px);
+    box-sizing: border-box;
+}
+.cbnp-post-title {
+    font-size: 18px;
+    margin: 0 0 10px;
+}
+.cbnp-post-excerpt {
+    font-size: 14px;
+    color: #555;
+}
