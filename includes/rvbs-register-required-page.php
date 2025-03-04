@@ -50,7 +50,8 @@ function my_custom_plugin_add_templates($templates) {
     return $templates;
 }
 
-// Load the correct template for the pages
+
+// Load the correct template for the pages 
 add_filter('template_include', 'my_custom_plugin_load_template');
 
 function my_custom_plugin_load_template($template) {
@@ -60,7 +61,7 @@ function my_custom_plugin_load_template($template) {
             return $plugin_template;
         }
     }
-    if (is_page('book-now')) {
+    if (is_page('booknow')) {
         $plugin_template = plugin_dir_path(__FILE__) . '../templates/rvbs-book-now.php';
         if (file_exists($plugin_template)) {
             return $plugin_template;
