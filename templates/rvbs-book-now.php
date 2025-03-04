@@ -82,25 +82,6 @@ if (!$is_fse_theme) {
                 <?php else: ?>
                     <p>No images available from the meta box.</p>
                 <?php endif; ?>
-
-                <!-- display the park feature -->
-
-                <?php 
-                                            $features = get_the_terms($post_id, 'park_feature');
-                                            if ($features && !is_wp_error($features)) :
-                                                echo '<p><strong>Features:</strong> ';
-                                                $feature_names = wp_list_pluck($features, 'name');
-                                                echo implode(', ', $feature_names);
-                                                echo '</p>';
-                                            endif;
-                                            $amenities = get_the_terms($post_id, 'site_amenity');
-                                            if ($amenities && !is_wp_error($amenities)) :
-                                                echo '<p><strong>Amenities:</strong> ';
-                                                $amenity_names = wp_list_pluck($amenities, 'name');
-                                                echo implode(', ', $amenity_names);
-                                                echo '</p>';
-                                            endif;
-                                            ?>
             </div>
             <?php
         } else {
