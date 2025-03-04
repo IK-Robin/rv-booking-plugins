@@ -130,6 +130,53 @@ function rvbs_register_custom_taxonomies()
         'show_in_rest'      => true,
     );
     register_taxonomy('site_amenity', array('rv-lots'), $site_amenities_args);
+
+
+    // Equipment Types Allowed
+    $equipment_types_labels = array(
+        'name'              => _x('Equipment Types Allowed', 'taxonomy general name', 'rv-booking-plugin'),
+        'singular_name'     => _x('Equipment Type Allowed', 'taxonomy singular name', 'rv-booking-plugin'),
+        'search_items'      => __('Search Equipment Types Allowed', 'rv-booking-plugin'),
+        'all_items'         => __('All Equipment Types Allowed', 'rv-booking-plugin'),
+        'parent_item'       => __('Parent Equipment Type', 'rv-booking-plugin'),
+        'parent_item_colon' => __('Parent Equipment Type:', 'rv-booking-plugin'),
+        'edit_item'         => __('Edit Equipment Type', 'rv-booking-plugin'),
+        'update_item'       => __('Update Equipment Type', 'rv-booking-plugin'),
+        'add_new_item'      => __('Add New Equipment Type', 'rv-booking-plugin'),
+        'new_item_name'     => __('New Equipment Type Name', 'rv-booking-plugin'),
+        'menu_name'         => __('Equipment Types Allowed', 'rv-booking-plugin'),
+    );
+    $equipment_types_args = array(
+        'hierarchical'      => true,
+        'labels'            => $equipment_types_labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array('slug' => 'equipment-type'),
+        'show_in_rest'      => true,
+    );
+    register_taxonomy('equipment_type', array('rv-lots'), $equipment_types_args);
+
+    // Add default equipment types to taxonomy
+    if (!term_exists('Fifth-Wheel', 'equipment_type')) {
+        wp_insert_term('Fifth-Wheel', 'equipment_type');
+    }
+    if (!term_exists('Motorhome', 'equipment_type')) {
+        wp_insert_term('Motorhome', 'equipment_type');
+    }
+    if (!term_exists('Pop-Up', 'equipment_type')) {
+        wp_insert_term('Pop-Up', 'equipment_type');
+    }
+    if (!term_exists('Travel Trailer', 'equipment_type')) {
+        wp_insert_term('Travel Trailer', 'equipment_type');
+    }
+    if (!term_exists('Truck Camper', 'equipment_type')) {
+        wp_insert_term('Truck Camper', 'equipment_type');
+    }
+    if (!term_exists('Van', 'equipment_type')) {
+        wp_insert_term('Van', 'equipment_type');
+    }
+
 }
 add_action('init', 'rvbs_register_custom_taxonomies', 0);
 
