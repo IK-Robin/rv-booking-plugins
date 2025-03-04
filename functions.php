@@ -47,15 +47,16 @@ require_once RVBS_BOOKING_PLUGIN_DIR . 'custom_post_deepseek.php';
 add_action('wp_ajax_load_more_posts', 'load_more_posts');
 add_action('wp_ajax_nopriv_load_more_posts', 'load_more_posts');
 
-          
 
 
 
 
-             
+
+
 
 // filete the site using site type taxonomy 
-function filter_rv_lots() {
+function filter_rv_lots()
+{
     $site_type = isset($_POST['site_type']) ? sanitize_text_field($_POST['site_type']) : '';
     $selected_features = isset($_POST['features']) ? $_POST['features'] : array();
     $selected_aminetis = isset($_POST['aminets']) ? $_POST['aminets'] : array();
@@ -86,14 +87,13 @@ function filter_rv_lots() {
 
     // filter by the park aminetis 
 
-    if(!empty($selected_aminetis)){
+    if (!empty($selected_aminetis)) {
         $args['tax_query'][] = array(
             'taxonomy' => 'site_amenity',
             'field' => 'slug',
             'terms' => $selected_aminetis,
             'operator' => 'AND',
         );
-
     }
 
     $query = new WP_Query($args);
@@ -111,12 +111,12 @@ function filter_rv_lots() {
                     </div>
                     <div class="col-md-5">
                         <h5 class="card-title">
-                            <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                            <a href="<?php echo home_url('/booknow?post_id=' . get_the_ID() . '&date=' . get_the_date('Y-m-d')); ?>"><?php the_title(); ?></a>
                         </h5>
                         <p class="card-text"><?php the_excerpt(); ?></p>
 
                         <!-- ✅ Show Available Features -->
-                        <?php 
+                        <?php
                         $features = get_the_terms(get_the_ID(), 'park_feature');
                         if ($features && !is_wp_error($features)) :
                             echo '<p><strong>Features:</strong> ';
@@ -127,19 +127,20 @@ function filter_rv_lots() {
                         ?>
 
                         <!-- ✅ Show Available Amenities -->
-                        <?php 
-                          
-                          $amenities = get_the_terms(get_the_ID(), 'site_amenity');
-                          if ($amenities && !is_wp_error($amenities)) :
-                              echo '<p><strong>Amenities:</strong> ';
-                              $amenity_names = wp_list_pluck($amenities, 'name');
-                              echo implode(', ', $amenity_names);
-                              echo '</p>';
-                          endif;
-                    
+                        <?php
+
+                        $amenities = get_the_terms(get_the_ID(), 'site_amenity');
+                        if ($amenities && !is_wp_error($amenities)) :
+                            echo '<p><strong>Amenities:</strong> ';
+                            $amenity_names = wp_list_pluck($amenities, 'name');
+                            echo implode(', ', $amenity_names);
+                            echo '</p>';
+                        endif;
+
                         ?>
 
-                        <a href="<?php echo home_url('/book-now?post_id=' . get_the_ID()); ?>" class="btn btn-primary">
+                        <a href="<?php echo home_url('/booknow?post_id=' . get_the_ID() . '&date=' . get_the_date('Y-m-d')); ?>"
+                            class="btn btn-primary" target="_blank" rel="noopener noreferrer">
                             Book Now
                         </a>
                     </div>
@@ -148,7 +149,7 @@ function filter_rv_lots() {
                     </div>
                 </div>
             </div>
-        <?php endwhile;
+<?php endwhile;
         wp_reset_postdata();
     else :
         echo '<p class="text-center">No RV lots found.</p>';
@@ -164,6 +165,8 @@ add_action('wp_ajax_nopriv_filter_rv_lots', 'filter_rv_lots');
 
 
 // filter the site using the feature 
+
+add_theme_support('wp-block-styles');
 
 
 
