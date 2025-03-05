@@ -32,7 +32,7 @@ require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-register-required-page.ph
 register_activation_hook(__FILE__, 'rvbs_plugin_activate');
 
 function rvbs_plugin_activate() {
-    create_rv_bookings_table(); 
+    
     my_custom_plugin_create_pages();
 }
 
@@ -41,5 +41,5 @@ function rvbs_plugin_activate() {
  */
 require_once RVBS_BOOKING_PLUGIN_DIR . 'admin/database/rvbs-bookings-table.php';
 // Register activation hook to create the database table
-register_activation_hook(__FILE__, 'create_rv_bookings_table');
+register_activation_hook(__FILE__, 'rvbs_create_rv_lot_tables');
 
