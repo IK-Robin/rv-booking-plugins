@@ -408,7 +408,7 @@ function rvbs_add_rv_lot_to_bookings($post_id, $post, $update) {
     }
 
     // Define the bookings table name
-    $table_name = $wpdb->prefix . 'rvbs_bookings';
+    $table_name = $wpdb->prefix . 'rvbs_rv_lots';
 
     // Insert a new row with default values
     $wpdb->insert(
@@ -442,7 +442,7 @@ function mark_rv_lot_unavailable($post_id) {
         return;
     }
 
-    $table_name = $wpdb->prefix . 'rvbs_bookings';
+    $table_name = $wpdb->prefix . 'rvbs_rv_lots';
 
     // Update 'is_available' and 'is_trash' columns correctly
     $wpdb->update(
@@ -468,7 +468,7 @@ function restore_rv_lot_availability($post_id) {
         return;
     }
 
-    $table_name = $wpdb->prefix . 'rvbs_bookings';
+    $table_name = $wpdb->prefix . 'rvbs_rv_lots';
     
     // Mark as available again
     $wpdb->update(
@@ -494,7 +494,7 @@ function delete_rv_lot_from_bookings($post_id) {
         return;
     }
 
-    $table_name = $wpdb->prefix . 'rvbs_bookings';
+    $table_name = $wpdb->prefix . 'rvbs_rv_lots';
 
     // Delete the row permanently
     $wpdb->delete(

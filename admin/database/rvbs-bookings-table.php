@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 }
 function create_rv_bookings_table() {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'rvbs_bookings';
+    $table_name = $wpdb->prefix . 'rvbs_rv_lots';
     $charset_collate = $wpdb->get_charset_collate();
 
     // Check if the table already exists
