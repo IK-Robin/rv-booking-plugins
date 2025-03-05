@@ -387,3 +387,77 @@ function rvbs_enqueue_admin_scripts($hook) {
 add_action('admin_enqueue_scripts', 'rvbs_enqueue_admin_scripts');
 
 // add metabox to save the image gallery 
+
+
+// add and hook to add new row in the booking data table 
+
+// Hook into the save_post_rv-lots action
+add_action('save_post_rv-lots', 'rvbs_add_rv_lot_to_bookings', 10, 3);
+
+function rvbs_add_rv_lot_to_bookings($post_id, $post, $update) {
+    global $wpdb;
+
+    // Only run this for new posts, not updates
+    if ($update) {
+        return;
+    }
+
+    // Ensure the post type is 'rv-lots'
+    if ($post->post_type !== 'rv-lots') {
+        return;
+    }
+
+    // Define the bookings table name
+    $table_name = $wpdb->prefix . 'rvbs_bookings';
+
+    // Insert a new row with default values
+    $wpdb->insert(
+        $table_name,
+        [
+            'post_id' => $post_id,
+            'is_available' => 1, // Mark as available by default
+            'status' => 'pending', // Default status
+            'created_at' => current_time('mysql', 1)
+        ],
+        ['%d', '%d', '%s', '%s'] // Data format: INT, INT, ENUM, TIMESTAMP
+    );
+
+    // Log errors if any
+    if (!empty($wpdb->last_error)) {
+        error_log('Error inserting RV lot into bookings: ' . $wpdb->last_error);
+    } else {
+        error_log("New RV lot (ID: $post_id) added to bookings.");
+    }
+}
+
+// Hook into before_delete_post to remove RV lot from bookings
+add_action('before_delete_post', 'delete_rv_lot_from_bookings');
+
+function delete_rv_lot_from_bookings($post_id) {
+    global $wpdb;
+
+    // Get the post type
+    $post = get_post($post_id);
+
+    // Ensure it's an 'rv-lots' post
+    if (!$post || $post->post_type !== 'rv-lots') {
+        return;
+    }
+
+    // Define the bookings table name
+    $table_name = $wpdb->prefix . 'rvbs_bookings';
+
+    // Delete the corresponding row
+    $wpdb->delete(
+        $table_name,
+        ['post_id' => $post_id],
+        ['%d']
+    );
+
+    // Log errors if any
+    if (!empty($wpdb->last_error)) {
+        error_log('Error deleting RV lot from bookings: ' . $wpdb->last_error);
+    } else {
+        error_log("RV lot (ID: $post_id) removed from bookings.");
+    }
+}
