@@ -430,34 +430,78 @@ function rvbs_add_rv_lot_to_bookings($post_id, $post, $update) {
     }
 }
 
-// Hook into before_delete_post to remove RV lot from bookings
+
+// Hook when a post is moved to trash
+add_action('wp_trash_post', 'mark_rv_lot_unavailable');
+
+function mark_rv_lot_unavailable($post_id) {
+    global $wpdb;
+
+    $post = get_post($post_id);
+    if (!$post || $post->post_type !== 'rv-lots') {
+        return;
+    }
+
+    $table_name = $wpdb->prefix . 'rvbs_bookings';
+
+    // Update 'is_available' and 'is_trash' columns correctly
+    $wpdb->update(
+        $table_name,
+        ['is_available' => 0, 'is_trash' => 1], // Columns to update
+        ['post_id' => $post_id], // Where condition
+        ['%d', '%d'], // Data formats
+        ['%d'] // Where format
+    );
+
+    error_log("RV lot (ID: $post_id) moved to trash and marked unavailable.");
+}
+
+
+// Hook when a post is restored from trash
+add_action('untrash_post', 'restore_rv_lot_availability');
+
+function restore_rv_lot_availability($post_id) {
+    global $wpdb;
+
+    $post = get_post($post_id);
+    if (!$post || $post->post_type !== 'rv-lots') {
+        return;
+    }
+
+    $table_name = $wpdb->prefix . 'rvbs_bookings';
+    
+    // Mark as available again
+    $wpdb->update(
+        $table_name,
+        ['is_available' => 1,'is_trash' => 0],
+        ['post_id' => $post_id],
+        ['%d'],
+        ['%d'],
+        ['%d'],
+    );
+
+    error_log("RV lot (ID: $post_id) restored and marked available.");
+}
+
+// Hook when a post is permanently deleted
 add_action('before_delete_post', 'delete_rv_lot_from_bookings');
 
 function delete_rv_lot_from_bookings($post_id) {
     global $wpdb;
 
-    // Get the post type
     $post = get_post($post_id);
-
-    // Ensure it's an 'rv-lots' post
     if (!$post || $post->post_type !== 'rv-lots') {
         return;
     }
 
-    // Define the bookings table name
     $table_name = $wpdb->prefix . 'rvbs_bookings';
 
-    // Delete the corresponding row
+    // Delete the row permanently
     $wpdb->delete(
         $table_name,
         ['post_id' => $post_id],
         ['%d']
     );
 
-    // Log errors if any
-    if (!empty($wpdb->last_error)) {
-        error_log('Error deleting RV lot from bookings: ' . $wpdb->last_error);
-    } else {
-        error_log("RV lot (ID: $post_id) removed from bookings.");
-    }
+    error_log("RV lot (ID: $post_id) permanently deleted from bookings.");
 }
