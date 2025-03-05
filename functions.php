@@ -18,7 +18,7 @@ require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-db-handel/rvbs-register-a
 
 // register the custom post type here
 // require_once RVBS_BOOKING_PLUGIN_DIR . 'custom_post.php';
-require_once RVBS_BOOKING_PLUGIN_DIR . 'custom_post_deepseek.php';
+require_once RVBS_BOOKING_PLUGIN_DIR . 'rvbs-rv-custompost-type.php';
 
 
 // // Hook to include custom template from plugin
