@@ -26,6 +26,7 @@ function rvbs_create_rv_lot_table() {
         is_available TINYINT(1) NOT NULL DEFAULT 1,
         status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
         is_trash TINYINT(1) NOT NULL DEFAULT 0,
+        deleted_post TINYINT(1) NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY post_id (post_id)
@@ -79,10 +80,11 @@ function rvbs_create_rv_lot_bookings_table() {
         return; // Table already exists, no need to create it again
     }
 
-    // SQL query to create the booking table
+    // SQL query to create the booking table with post_id added
     $sql = "CREATE TABLE $table_name (
         id INT NOT NULL AUTO_INCREMENT,
         lot_id INT NOT NULL,
+        post_id INT NOT NULL,
         user_id INT NULL,
         check_in DATE NOT NULL,
         check_out DATE NOT NULL,
@@ -91,6 +93,7 @@ function rvbs_create_rv_lot_bookings_table() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY lot_id (lot_id),
+        KEY post_id (post_id),
         CONSTRAINT fk_lot_id FOREIGN KEY (lot_id) REFERENCES {$wpdb->prefix}rvbs_rv_lots(id) ON DELETE CASCADE
     ) $charset_collate;";
 
@@ -101,6 +104,22 @@ function rvbs_create_rv_lot_bookings_table() {
         error_log('Error creating RV lot bookings table: ' . $wpdb->last_error);
     } else {
         error_log('RV lot bookings table created successfully.');
+    }
+
+    // Add foreign key constraint for post_id
+    $foreign_key_sql = "ALTER TABLE $table_name
+        ADD CONSTRAINT fk_post_id
+        FOREIGN KEY (post_id) REFERENCES {$wpdb->prefix}posts(ID)
+        ON DELETE CASCADE;";
+
+    // Execute the foreign key query
+    $wpdb->query($foreign_key_sql);
+
+    // Check for errors in foreign key creation
+    if (!empty($wpdb->last_error)) {
+        error_log('Error adding post_id foreign key constraint: ' . $wpdb->last_error);
+    } else {
+        error_log('Post_id foreign key constraint added successfully.');
     }
 }
 

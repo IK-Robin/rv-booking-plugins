@@ -392,6 +392,7 @@ add_action('admin_enqueue_scripts', 'rvbs_enqueue_admin_scripts');
 // add and hook to add new row in the booking data table 
 
 // Hook into the save_post_rv-lots action
+// Hook into the save_post_rv-lots action
 add_action('save_post_rv-lots', 'rvbs_add_rv_lot_to_bookings', 10, 3);
 
 function rvbs_add_rv_lot_to_bookings($post_id, $post, $update) {
@@ -414,10 +415,10 @@ function rvbs_add_rv_lot_to_bookings($post_id, $post, $update) {
     $wpdb->insert(
         $table_name,
         [
-            'post_id' => $post_id,
+            'post_id'      => $post_id,
             'is_available' => 1, // Mark as available by default
-            'status' => 'pending', // Default status
-            'created_at' => current_time('mysql', 1)
+            'status'       => 'pending', // Default status
+            'created_at'   => current_time('mysql', 1)
         ],
         ['%d', '%d', '%s', '%s'] // Data format: INT, INT, ENUM, TIMESTAMP
     );
@@ -429,7 +430,6 @@ function rvbs_add_rv_lot_to_bookings($post_id, $post, $update) {
         error_log("New RV lot (ID: $post_id) added to bookings.");
     }
 }
-
 
 // Hook when a post is moved to trash
 add_action('wp_trash_post', 'mark_rv_lot_unavailable');
@@ -444,16 +444,20 @@ function mark_rv_lot_unavailable($post_id) {
 
     $table_name = $wpdb->prefix . 'rvbs_rv_lots';
 
-    // Update 'is_available' and 'is_trash' columns correctly
+    // Mark as trashed, set availability to 0, and status to 'pending'
     $wpdb->update(
         $table_name,
-        ['is_available' => 0, 'is_trash' => 1], // Columns to update
+        [
+            'is_trash'    => 1,
+            'is_available' => 0,
+            'status'      => 'pending'
+        ], 
         ['post_id' => $post_id], // Where condition
-        ['%d', '%d'], // Data formats
-        ['%d'] // Where format
+        ['%d', '%d', '%s'], // Data formats: INT, INT, STRING
+        ['%d'] // Where format: INT
     );
 
-    error_log("RV lot (ID: $post_id) moved to trash and marked unavailable.");
+    error_log("RV lot (ID: $post_id) moved to trash.");
 }
 
 
@@ -470,23 +474,59 @@ function restore_rv_lot_availability($post_id) {
 
     $table_name = $wpdb->prefix . 'rvbs_rv_lots';
     
-    // Mark as available again
+    // Restore from trash but do not change availability
     $wpdb->update(
         $table_name,
-        ['is_available' => 1,'is_trash' => 0],
+        ['is_trash' => 0], // Only reset is_trash flag
         ['post_id' => $post_id],
         ['%d'],
-        ['%d'],
-        ['%d'],
+        ['%d']
     );
 
-    error_log("RV lot (ID: $post_id) restored and marked available.");
+    error_log("RV lot (ID: $post_id) restored from trash.");
 }
 
-// Hook when a post is permanently deleted
-add_action('before_delete_post', 'delete_rv_lot_from_bookings');
+// Hook into post status transition to handle availability updates
+add_action('transition_post_status', 'rvbs_update_availability_status', 10, 3);
 
-function delete_rv_lot_from_bookings($post_id) {
+function rvbs_update_availability_status($new_status, $old_status, $post) {
+    global $wpdb;
+
+    if ($post->post_type !== 'rv-lots') {
+        return;
+    }
+
+    $table_name = $wpdb->prefix . 'rvbs_rv_lots';
+
+    if ($new_status === 'publish') {
+        // When post is published, mark as available and confirmed
+        $wpdb->update(
+            $table_name,
+            ['is_available' => 1, 'status' => 'confirmed'],
+            ['post_id' => $post->ID],
+            ['%d', '%s'],
+            ['%d']
+        );
+        error_log("RV lot (ID: {$post->ID}) marked as available (published).");
+    } elseif ($new_status === 'draft') {
+        // When post is moved to draft, mark as unavailable and pending
+        $wpdb->update(
+            $table_name,
+            ['is_available' => 0, 'status' => 'pending'],
+            ['post_id' => $post->ID],
+            ['%d', '%s'],
+            ['%d']
+        );
+        error_log("RV lot (ID: {$post->ID}) marked as unavailable (draft).");
+    }
+}
+
+
+
+// Hook when a post is permanently deleted
+add_action('before_delete_post', 'rvbs_mark_post_as_deleted');
+
+function rvbs_mark_post_as_deleted($post_id) {
     global $wpdb;
 
     $post = get_post($post_id);
@@ -496,12 +536,14 @@ function delete_rv_lot_from_bookings($post_id) {
 
     $table_name = $wpdb->prefix . 'rvbs_rv_lots';
 
-    // Delete the row permanently
-    $wpdb->delete(
+    // Instead of deleting, mark the post as deleted
+    $wpdb->update(
         $table_name,
+        ['deleted_post' => 1], // Mark as deleted
         ['post_id' => $post_id],
+        ['%d'],
         ['%d']
     );
 
-    error_log("RV lot (ID: $post_id) permanently deleted from bookings.");
+    error_log("RV lot (ID: $post_id) marked as deleted.");
 }

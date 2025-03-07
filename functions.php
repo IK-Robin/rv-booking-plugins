@@ -185,4 +185,133 @@ add_filter('template_include', 'rvbs_load_custom_template');
 
 // add the style support for block theam 
 add_theme_support('wp-block-styles');
-?>
+
+
+// add anotehr logic to book and filter rv lots 
+
+// Enqueue scripts and localize AJAX
+function rvbs_enqueue_scripts() {
+    wp_enqueue_script('jquery');
+    
+    wp_register_script('rvbs-booking', get_template_directory_uri() . 'assets/js/rvbs-booking.js', array('jquery'), '1.0', true);
+    
+    wp_localize_script('rvbs-booking', 'rvbs_ajax', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('rvbs_booking_nonce')
+    ));
+    
+    wp_enqueue_script('rvbs-booking');
+}
+add_action('wp_enqueue_scripts', 'rvbs_enqueue_scripts');
+
+// Check availability AJAX handler
+function rvbs_check_availability() {
+    check_ajax_referer('rvbs_booking_nonce', 'nonce');
+    
+    
+    global $wpdb;
+    $table_lots = $wpdb->prefix . 'rvbs_rv_lots';
+    $table_bookings = $wpdb->prefix . 'rvbs_bookings';
+    
+    $check_in = sanitize_text_field($_POST['check_in']);
+    $check_out = sanitize_text_field($_POST['check_out']);
+    
+    // Query to find available lots
+    $query = $wpdb->prepare("
+        SELECT rl.*
+        FROM $table_lots rl
+        WHERE rl.is_available = 1 
+        AND rl.is_trash = 0
+        AND rl.status = 'confirmed'
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM $table_bookings rb 
+            WHERE rb.lot_id = rl.id
+            AND rb.status IN ('pending', 'confirmed')
+            AND (
+                (%s BETWEEN rb.check_in AND rb.check_out)
+                OR (%s BETWEEN rb.check_in AND rb.check_out)
+                OR (rb.check_in BETWEEN %s AND %s)
+            )
+        )",
+        $check_in,
+        $check_out,
+        $check_in,
+        $check_out
+    );
+    
+    $available_lots = $wpdb->get_results($query);
+    
+    if ($available_lots) {
+        $output = '<h3>Available Lots</h3>';
+        foreach ($available_lots as $lot) {
+            $post_title = get_the_title($lot->post_id);
+            $output .= '<div class="lot-item">';
+            $output .= '<h4>' . esc_html($post_title) . '</h4>';
+            $output .= '<p>Lot ID: ' . $lot->id . '</p>';
+            $output .= '<button class="book-btn" data-lot-id="' . $lot->id . '" data-post-id="' . $lot->post_id . '">Book Now</button>';
+            $output .= '</div>';
+        }
+    } else {
+        $output = '<p>No lots available for these dates.</p>';
+    }
+    
+    wp_send_json_success(array('html' => $output));
+}
+add_action('wp_ajax_rvbs_check_availability', 'rvbs_check_availability');
+add_action('wp_ajax_nopriv_rvbs_check_availability', 'rvbs_check_availability');
+
+// Book lot AJAX handler
+function rvbs_book_lot() {
+    check_ajax_referer('rvbs_booking_nonce', 'nonce');
+    
+    if (!is_user_logged_in()) {
+        wp_send_json_error('Please log in to book a lot.');
+    }
+    
+    global $wpdb;
+    $table_bookings = $wpdb->prefix . 'rvbs_bookings';
+    
+    $lot_id = intval($_POST['lot_id']);
+    $post_id = intval($_POST['post_id']);
+    $check_in = sanitize_text_field($_POST['check_in']);
+    $check_out = sanitize_text_field($_POST['check_out']);
+    $user_id = get_current_user_id();
+    
+    // Calculate total price (example calculation, modify as needed)
+    $start = new DateTime($check_in);
+    $end = new DateTime($check_out);
+    $days = $start->diff($end)->days;
+    $price_per_day = 50; // Example price, adjust as needed
+    $total_price = $days * $price_per_day;
+    
+    // Insert booking
+    $result = $wpdb->insert(
+        $table_bookings,
+        array(
+            'lot_id' => $lot_id,
+            'post_id' => $post_id,
+            'user_id' => $user_id,
+            'check_in' => $check_in,
+            'check_out' => $check_out,
+            'total_price' => $total_price,
+            'status' => 'pending',
+            'created_at' => current_time('mysql')
+        ),
+        array('%d', '%d', '%d', '%s', '%s', '%f', '%s', '%s')
+    );
+    
+    if ($result) {
+        wp_send_json_success('Booking request submitted successfully!');
+    } else {
+        wp_send_json_error('Error creating booking: ' . $wpdb->last_error);
+    }
+}
+add_action('wp_ajax_rvbs_book_lot', 'rvbs_book_lot');
+add_action('wp_ajax_nopriv_rvbs_book_lot', 'rvbs_book_lot');
+
+
+
+
+
+// add anotehr logic to book and filter rv lots 
