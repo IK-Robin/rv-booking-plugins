@@ -190,7 +190,7 @@ add_theme_support('wp-block-styles');
 // add anotehr logic to book and filter rv lots 
 
 // Enqueue scripts and localize AJAX
-function rvbs_enqueue_scripts() {
+function rvbs_enqueue_scripts() { 
     wp_enqueue_script('jquery');
     
     wp_register_script('rvbs-booking', get_template_directory_uri() . 'assets/js/rvbs-booking.js', array('jquery'), '1.0', true);
@@ -226,7 +226,8 @@ function rvbs_check_availability() {
         AND NOT EXISTS (
             SELECT 1 
             FROM $table_bookings rb 
-            WHERE rb.lot_id = rl.id
+            WHERE rb.post_id = rl.post_id
+            AND rb.lot_id = rl.id
             AND rb.status IN ('pending', 'confirmed')
             AND (
                 (%s BETWEEN rb.check_in AND rb.check_out)
