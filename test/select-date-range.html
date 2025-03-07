@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Range Calendar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .calendar-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative; /* Added to help with positioning context */
+        }
+        .date-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            width: 280px;
+            cursor: pointer;
+            background: white;
+            color: #999;
+            font-size: 16px;
+        }
+        .date-display.active {
+            color: black;
+        }
+        .date-display span {
+            margin: 0 5px;
+            color: black;
+        }
+        .hidden-inputs {
+            display: none;
+        }
+        /* Ensure the calendar appears near the date-display */
+        .flatpickr-calendar {
+            top: 100% !important; /* Positions below the date-display */
+            left: 50% !important; /* Centers horizontally */
+            transform: translateX(-50%) !important; /* Adjusts for centering */
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <h2>Dates</h2>
+        <div id="dateDisplay" class="date-display" onclick="openCalendar()">
+            <span id="checkInText">Check In</span>
+            <span style='color: black;'>→</span>
+            <span id="checkOutText">Check Out</span>
+        </div>
+        <input type="text" id="dateRange" style="position: absolute; opacity: 0; height: 0; width: 0; padding: 0; border: none;">
+        <div class="hidden-inputs">
+            <input type="hidden" id="checkIn" name="checkIn">
+            <input type="hidden" id="checkOut" name="checkOut">
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <script>
+       let fpInstance;
+
+function openCalendar() {
+    if (fpInstance) {
+        fpInstance.open();
+    }
+}
+
+fpInstance = flatpickr("#dateRange", {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    minDate: "today",
+    onClose: function(selectedDates) {
+        if (selectedDates.length === 2) {
+            const formatDate = date => date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
+            document.querySelector("#checkInText").textContent = formatDate(selectedDates[0]);
+            document.querySelector("#checkOutText").textContent = formatDate(selectedDates[1]);
+            document.querySelector("#dateDisplay").classList.add("active");
+            
+            // Use toLocaleDateString with a specific format to avoid timezone issues
+            const getISODate = date => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+            
+            document.querySelector("#checkIn").value = getISODate(selectedDates[0]);
+            document.querySelector("#checkOut").value = getISODate(selectedDates[1]);
+        }
+    },
+    appendTo: document.querySelector('.calendar-container')
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Datepicker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.4/dist/css/air-datepicker.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
+        .calendar-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        input { padding: 10px; width: 250px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <h2>Select Your Dates</h2>
+        <input type="text" id="dateRange" placeholder="Select dates...">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.4/dist/js/air-datepicker.min.js"></script>
+    <script>
+        new AirDatepicker('#dateRange', {
+            range: true,
+            minDate: new Date(),
+            multipleDatesSeparator: ' - ',
+            onSelect: function(formattedDate, date) {
+                console.log("Selected:", formattedDate);
+            }
+        });
+    </script>
+</body>
+</html>
