@@ -20,8 +20,8 @@ if (!defined('RVBS_BOOKING_PLUGIN_URL')) {
 }
 
 // Define the plugin version
-if (!defined('PLUGIN_VER')) {
-    define('PLUGIN_VER', '1.0');
+if (!defined('RVBS_PLUGIN_VER')) {
+    define('RVBS_PLUGIN_VER', '1.0');
 }
 
 // Include necessary files

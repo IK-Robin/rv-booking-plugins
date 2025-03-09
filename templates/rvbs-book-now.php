@@ -3,124 +3,388 @@
 Template Name: Book Now
 */
 get_header();
+
+// Get the post ID and query parameters from the URL
+$post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
+$check_in = isset($_GET['check_in']) ? sanitize_text_field($_GET['check_in']) : '';
+$check_out = isset($_GET['check_out']) ? sanitize_text_field($_GET['check_out']) : '';
+$adults = isset($_GET['adults']) ? intval($_GET['adults']) : 1;
+$children = isset($_GET['children']) ? intval($_GET['children']) : 0;
+
+// Fetch the RV lot post
+$lot = get_post($post_id);
+if (!$lot || $lot->post_type !== 'rv-lots') {
+    wp_die('Invalid RV lot.');
+}
+
+// Get amenities and features
+$amenities = get_the_terms($post_id, 'site_amenity');
+$features = get_the_terms($post_id, 'park_feature');
+
+// Get price
+$price = get_post_meta($post_id, '_rv_lots_price', true);
+$price = floatval($price) ?: 20.00;
+
+// Calculate nights
+$nights = 0;
+if ($check_in && $check_out) {
+    $date1 = new DateTime($check_in);
+    $date2 = new DateTime($check_out);
+    $nights = $date1->diff($date2)->days;
+}
+
+// Format dates for initial display
+$check_in_formatted = $check_in ? (new DateTime($check_in))->format('D, M d') : 'Check In';
+$check_out_formatted = $check_out ? (new DateTime($check_out))->format('D, M d') : 'Check Out';
 ?>
 
-<div id="booking-container">
-    <h2>Book an RV Lot</h2>
-    
-    <form id="availability-form">
-        <div class="form-group">
-            <label for="check_in">Check-in Date:</label>
-            <input value="2025/3/06" type="date" id="check_in" name="check_in" required>
-        </div>
-        <div class="form-group">
-            <label for="check_out">Check-out Date:</label>
-            <input value="2025/3/14" type="date" id="check_out" name="check_out" required>
-        </div>
-        <button type="submit" id="check-availability">Check Availability</button>
-    </form>
+<div class="container my-5">
+    <div class="row">
+        <!-- Left Section: Lot Details -->
+        <div class="col-lg-8">
+            <!-- Park Name and Lot Title -->
+            <div class="mb-3">
+                <a href="<?php echo home_url(); ?>" class="text-success text-decoration-none">Little Star RV Park</a>
+                <h1 class="h3 mt-1"><?php echo esc_html($lot->post_title); ?></h1>
+            </div>
 
-    <div id="availability-results"></div>
+            <!-- Images -->
+            <div class="mb-4">
+                <!-- Main Image -->
+                <?php if (has_post_thumbnail($post_id)) : ?>
+                    <img src="<?php echo get_the_post_thumbnail_url($post_id, 'large'); ?>" class="img-fluid rounded mb-2" alt="<?php echo esc_attr($lot->post_title); ?>">
+                <?php else : ?>
+                    <div class="bg-light text-center p-5 rounded mb-2">No Image Available</div>
+                <?php endif; ?>
+
+                <!-- Thumbnails -->
+                <div class="d-flex gap-2">
+                    <?php
+                    // Assuming you have additional images stored in a meta field (e.g., '_rv_lot_images')
+                    $additional_images = get_post_meta($post_id, '_rv_lot_images', true);
+                    $thumbnail_count = 0;
+                    if ($additional_images && is_array($additional_images)) :
+                        foreach ($additional_images as $image_id) :
+                            if ($thumbnail_count >= 3) break; // Limit to 3 thumbnails
+                            $thumbnail_url = wp_get_attachment_image_url($image_id, 'thumbnail');
+                            if ($thumbnail_url) :
+                                ?>
+                                <img src="<?php echo esc_url($thumbnail_url); ?>" class="img-fluid rounded" style="width: 100px; height: 75px; object-fit: cover;" alt="Thumbnail">
+                                <?php
+                                $thumbnail_count++;
+                            endif;
+                        endforeach;
+                    endif;
+                    ?>
+                    <?php if ($thumbnail_count > 0) : ?>
+                        <button class="btn btn-outline-secondary btn-sm align-self-center">View <?php echo $thumbnail_count; ?> Photos</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Overview Section -->
+            <div class="mb-4">
+                <h2 class="h5">Overview</h2>
+                <h3 class="h6">Site Amenities</h3>
+                <div class="d-flex flex-wrap gap-3">
+                    <?php
+                    if ($amenities && !is_wp_error($amenities)) :
+                        foreach ($amenities as $amenity) :
+                            // Map amenity names to icons (you'll need to add your own icons)
+                            $icon = '';
+                            switch (strtolower($amenity->name)) {
+                                case '30-amp':
+                                    $icon = '<i class="bi bi-plug"></i>';
+                                    break;
+                                case '50-amp':
+                                    $icon = '<i class="bi bi-plug-fill"></i>';
+                                    break;
+                                case 'back-in':
+                                    $icon = '<i class="bi bi-arrow-left-circle"></i>';
+                                    break;
+                                case 'charcoal grill':
+                                    $icon = '<i class="bi bi-fire"></i>';
+                                    break;
+                                case 'electricity':
+                                    $icon = '<i class="bi bi-lightning"></i>';
+                                    break;
+                                case 'picnic table':
+                                    $icon = '<i class="bi bi-table"></i>';
+                                    break;
+                                case 'sewer hook-up':
+                                    $icon = '<i class="bi bi-water"></i>';
+                                    break;
+                                case 'water hook-up':
+                                    $icon = '<i class="bi bi-droplet"></i>';
+                                    break;
+                                case 'wi-fi':
+                                    $icon = '<i class="bi bi-wifi"></i>';
+                                    break;
+                                case '20-amp':
+                                    $icon = '<i class="bi bi-plug"></i>';
+                                    break;
+                                default:
+                                    $icon = '<i class="bi bi-check-circle"></i>';
+                            }
+                            ?>
+                            <div>
+                                <?php echo $icon; ?> <?php echo esc_html($amenity->name); ?>
+                            </div>
+                            <?php
+                        endforeach;
+                    else :
+                        echo '<p>No amenities available.</p>';
+                    endif;
+                    ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Section: Booking Form -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm p-4 sticky-top" style="top: 20px;">
+                <form id="booking-form">
+                    <!-- Step 1: Trip Details -->
+                    <div class="mb-4">
+                        <h3 class="h6 text-muted">1. Trip Details</h3>
+                        <div class="mb-3 calendar-container">
+                            <label class="form-label">Dates</label>
+                            <div id="dateDisplay" class="date-display" onclick="openCalendar()">
+                                <span id="checkInText"><?php echo $check_in_formatted; ?></span>
+                                <span style='color: black;'>→</span>
+                                <span id="checkOutText"><?php echo $check_out_formatted; ?></span>
+                            </div>
+                            <input type="text" id="dateRange" style="position: absolute; opacity: 0; height: 0; width: 0; padding: 0; border: none;">
+                            <div class="hidden-inputs">
+                                <input type="hidden" id="check_in" name="check_in" value="<?php echo esc_attr($check_in); ?>">
+                                <input type="hidden" id="check_out" name="check_out" value="<?php echo esc_attr($check_out); ?>">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Guests</label>
+                            <select class="form-select" id="guests" name="guests">
+                                <option value="<?php echo $adults; ?>" selected><?php echo $adults; ?> Adults<?php echo $children ? ', ' . $children . ' Children' : ''; ?></option>
+                                <option value="1">1 Adult</option>
+                                <option value="2">2 Adults</option>
+                                <option value="3">3 Adults</option>
+                                <option value="4">4 Adults</option>
+                            </select>
+                            <input type="hidden" id="adults" name="adults" value="<?php echo esc_attr($adults); ?>">
+                            <input type="hidden" id="children" name="children" value="<?php echo esc_attr($children); ?>">
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Equipment Details -->
+                    <div class="mb-4">
+                        <h3 class="h6 text-muted">2. Equipment Details</h3>
+                        <div class="mb-3">
+                            <label class="form-label">Equipment Type</label>
+                            <select class="form-select" id="equipment_type" name="equipment_type">
+                                <option value="">Select Equipment Type</option>
+                                <option value="rv">RV</option>
+                                <option value="tent">Tent</option>
+                                <option value="trailer">Trailer</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Length (ft)</label>
+                            <input type="number" class="form-control" id="length_ft" name="length_ft" min="0" placeholder="e.g., 30">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Slide-Outs</label>
+                            <select class="form-select" id="slide_outs" name="slide_outs">
+                                <option value="">Select Slide-Outs</option>
+                                <option value="0">0 Slide-Outs</option>
+                                <option value="1">1 Slide-Out</option>
+                                <option value="2">2 Slide-Outs</option>
+                                <option value="3">3 Slide-Outs</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Choose Your Site -->
+                    <div class="mb-4">
+                        <h3 class="h6 text-muted">3. Choose Your Site</h3>
+                        <div class="mb-3">
+                            <label class="form-label">Site Location</label>
+                            <input type="text" class="form-control" id="site_location" name="site_location" placeholder="e.g., Lot #5">
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="mb-4">
+                        <?php
+                        $nightly_rate = $price;
+                        $subtotal = $nightly_rate * $nights;
+                        $weekly_rate = 0; // Adjust if you have a weekly rate logic
+                        $campground_fees = 5.00; // Example fee
+                        $total = $subtotal + $campground_fees;
+                        ?>
+                        <div class="d-flex justify-content-between">
+                            <span>$<?php echo number_format($nightly_rate, 2); ?> x <?php echo $nights; ?> Nights</span>
+                            <span>$<?php echo number_format($subtotal, 2); ?></span>
+                        </div>
+                        <?php if ($weekly_rate > 0) : ?>
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>Weekly Rate</span>
+                                <span>-$<?php echo number_format($weekly_rate, 2); ?></span>
+                            </div>
+                        <?php endif; ?>
+                        <div class="d-flex justify-content-between text-muted">
+                            <span>Campground Fees</span>
+                            <span>$<?php echo number_format($campground_fees, 2); ?></span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Site Total</span>
+                            <span>$<?php echo number_format($total, 2); ?></span>
+                        </div>
+                    </div>
+
+                    <!-- Add to Cart Button -->
+                    <button type="submit" class="btn btn-success w-100">Add to Cart</button>
+                    <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
-<style>
-    .form-group {
-        margin: 15px 0;
-    }
-    #availability-results {
-        margin-top: 20px;
-    }
-    .lot-item {
-        border: 1px solid #ddd;
-        padding: 15px;
-        margin: 10px 0;
-    }
-    .book-btn {
-        background-color: #4CAF50;
-        color: white;
-        padding: 8px 16px;
-        border: none;
-        cursor: pointer;
-    }
-    #availability-form{
-        width: 20%;
-        margin: 0 auto;
-    }
-</style>
+<!-- Bootstrap CSS and Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+
+<!-- jQuery and Bootstrap JS (already included in WordPress) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 
 <script>
-    jQuery(document).ready(function($) {
-    // Check availability
-    $('#availability-form').on('submit', function(e) {
+jQuery(document).ready(function($) {
+    let fpInstance;
+
+    function openCalendar() {
+        if (fpInstance) {
+            fpInstance.open();
+        }
+    }
+
+    // Initialize Flatpickr
+    fpInstance = flatpickr("#dateRange", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        onClose: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                const formatDate = date => date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
+                document.querySelector("#checkInText").textContent = formatDate(selectedDates[0]);
+                document.querySelector("#checkOutText").textContent = formatDate(selectedDates[1]);
+                document.querySelector("#dateDisplay").classList.add("active");
+                
+                const getISODate = date => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+                
+                $('#check_in').val(getISODate(selectedDates[0]));
+                $('#check_out').val(getISODate(selectedDates[1]));
+                
+                // Recalculate nights and update price breakdown
+                const date1 = new Date(getISODate(selectedDates[0]));
+                const date2 = new Date(getISODate(selectedDates[1]));
+                const nights = Math.ceil((date2 - date1) / (1000 * 60 * 60 * 24));
+                const price = <?php echo $price; ?>;
+                const subtotal = price * nights;
+                const campground_fees = 5.00;
+                const total = subtotal + campground_fees;
+
+                $('.d-flex:contains("Nights") span:nth-child(2)').text('$' + subtotal.toFixed(2));
+                $('.d-flex:contains("Site Total") span:nth-child(2)').text('$' + total.toFixed(2));
+            }
+        },
+        appendTo: document.querySelector('.calendar-container')
+    });
+
+    // Handle form submission
+    $('#booking-form').on('submit', function(e) {
         e.preventDefault();
-        
+
+        const post_id = $('input[name="post_id"]').val();
         const check_in = $('#check_in').val();
         const check_out = $('#check_out').val();
-        
+        const adults = $('#adults').val();
+        const children = $('#children').val();
+        const equipment_type = $('#equipment_type').val();
+        const length_ft = $('#length_ft').val();
+        const slide_outs = $('#slide_outs').val();
+        const site_location = $('#site_location').val();
+
+        // Basic validation
         if (!check_in || !check_out) {
-            alert('Please select both check-in and check-out dates.');
+            alert('Please select check-in and check-out dates.');
             return;
         }
-        
-        $.ajax({
-            url: rvbs_ajax.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'rvbs_check_availability',
-                nonce: rvbs_ajax.nonce,
-                check_in: check_in,
-                check_out: check_out
-            },
-            beforeSend: function() {
-                $('#availability-results').html('Checking availability...');
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#availability-results').html(response.data.html);
-                } else {
-                    $('#availability-results').html('Error checking availability.');
-                }
-            },
-            error: function() {
-                $('#availability-results').html('An error occurred.');
-            }
-        });
-    });
-    
-    // Book lot
-    $(document).on('click', '.book-btn', function() {
-        const lot_id = $(this).data('lot-id');
-        const post_id = $(this).data('post-id');
-        const check_in = $('#check_in').val();
-        const check_out = $('#check_out').val(); 
-        
+        if (!equipment_type) {
+            alert('Please select an equipment type.');
+            return;
+        }
+        if (!length_ft) {
+            alert('Please enter the equipment length.');
+            return;
+        }
+        if (!slide_outs) {
+            alert('Please select the number of slide-outs.');
+            return;
+        }
+        if (!site_location) {
+            alert('Please enter the site location.');
+            return;
+        }
+
         $.ajax({
             url: rvbs_ajax.ajax_url,
             type: 'POST',
             data: {
                 action: 'rvbs_book_lot',
                 nonce: rvbs_ajax.nonce,
-                lot_id: lot_id,
                 post_id: post_id,
                 check_in: check_in,
-                check_out: check_out
+                check_out: check_out,
+                adults: adults,
+                children: children,
+                equipment_type: equipment_type,
+                length_ft: length_ft,
+                slide_outs: slide_outs,
+                site_location: site_location
             },
             beforeSend: function() {
-                $('#availability-results').html('Processing booking...');
+                $('#booking-form button[type="submit"]').text('Processing...').prop('disabled', true);
             },
             success: function(response) {
                 if (response.success) {
-                    $('#availability-results').html(response.data);
-                    alert('Booking successful!');
+                    alert('Booking added to cart successfully!');
+                    // Optionally redirect to a cart page
+                    // window.location.href = '<?php echo home_url('/cart'); ?>';
                 } else {
-                    $('#availability-results').html(response.data);
                     alert('Booking failed: ' + response.data);
                 }
             },
             error: function() {
-                $('#availability-results').html('An error occurred while booking.');
+                alert('An error occurred while booking.');
+            },
+            complete: function() {
+                $('#booking-form button[type="submit"]').text('Add to Cart').prop('disabled', false);
             }
         });
+    });
+
+    // Handle guests selection
+    $('#guests').on('change', function() {
+        const value = $(this).val();
+        $('#adults').val(value);
+        $('#children').val(0); // Update as needed if children are selected
     });
 });
 </script>
