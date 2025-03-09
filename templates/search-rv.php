@@ -98,50 +98,104 @@ if (!$is_fse_theme) {
     </div>
 
     <!-- AJAX Filtering Script -->
-    <script>
-    jQuery(document).ready(function($) {
-        function filterRVLots() {
-            var siteType = $('.filter-btn.active').data('filter') || 'all';
-            var selectedFeatures = [];
-            $('.feature-filter:checked').each(function() {
-                selectedFeatures.push($(this).val());
-            });
-            var selectedAmenities = [];
-            $('.aminets-filter:checked').each(function() {
-                selectedAmenities.push($(this).val());
-            });
-
-            $.ajax({
-                type: 'POST',
-                url: '<?php echo admin_url("admin-ajax.php"); ?>',
-                data: {
-                    action: 'filter_rv_lots',
-                    site_type: siteType,
-                    features: selectedFeatures,
-                    aminets: selectedAmenities,
-                }, 
-                beforeSend: function() {
-                    $('#show_aval_room').html('<p class="text-center">Loading...</p>');
-                },
-                success: function(response) {
-                    $('#show_aval_room').html(response);
-                }
-            });
-        }
-
-        // Handle Site Type Filter Click
-        $('.filter-btn').on('click', function() {
-            $('.filter-btn').removeClass('active');
-            $(this).addClass('active');
-            filterRVLots();
+<!-- Update the existing AJAX Filtering Script -->
+<!-- Update the AJAX Filtering Script in your template -->
+<script>
+jQuery(document).ready(function($) {
+    function filterRVLots() {
+        var siteType = $('.filter-btn.active').data('filter') || 'all';
+        var selectedFeatures = [];
+        $('.feature-filter:checked').each(function() {
+            selectedFeatures.push($(this).val());
         });
-
-        // Handle Park Feature and Amenity Checkbox Change
-        $('.feature-filter, .aminets-filter').on('change', function() {
-            filterRVLots();
+        var selectedAmenities = [];
+        $('.aminets-filter:checked').each(function() {
+            selectedAmenities.push($(this).val());
         });
+        var checkInDate = $('#checkin_date').val();
+        var checkOutDate = $('#checkout_date').val();
+        var adults = $('#adult').val() || 1; // Default to 1 if empty
+        var children = $('#children').val() || 0; // Default to 0 if empty
+        var priceRange = $('input[name="price_range"]:checked').val() || ''; // Get selected price range
+
+        $.ajax({
+            type: 'POST',
+            url: '<?php echo admin_url("admin-ajax.php"); ?>',
+            data: {
+                action: 'filter_rv_lots',
+                site_type: siteType,
+                features: selectedFeatures,
+                aminets: selectedAmenities,
+                check_in: checkInDate,
+                check_out: checkOutDate,
+                adults: adults,
+                children: children,
+                price_range: priceRange // Add price range to the AJAX data
+            }, 
+            beforeSend: function() {
+                $('#show_aval_room').html('<p class="text-center">Loading...</p>');
+            },
+            success: function(response) {
+                $('#show_aval_room').html(response);
+            }
+        });
+    }
+
+    // Handle Site Type Filter Click
+    $('.filter-btn').on('click', function() {
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+        filterRVLots();
     });
-    </script>
+
+    // Handle all filter changes
+    $('.feature-filter, .aminets-filter, .price-filter, #checkin_date, #checkout_date, #adult, #children').on('change', function() {
+        filterRVLots();
+    });
+
+    // Guest filter function
+    window.guest_filter = function() {
+        filterRVLots();
+    }
+
+    // Clear guest function
+    window.clear_guest = function() {
+        $('#adult').val('');
+        $('#children').val('');
+        filterRVLots();
+    }
+
+    // Clear price function
+    window.clear_price = function() {
+        $('input[name="price_range"]').prop('checked', false);
+        filterRVLots();
+    }
+
+    // Clear date function
+    window.clear_date = function() {
+        $('#checkin_date').val('');
+        $('#checkout_date').val('');
+        $('#nights_display').remove();
+        filterRVLots();
+    }
+
+    // Check room availability
+    window.check_room_aval = function() {
+        filterRVLots();
+        var checkIn = new Date($('#checkin_date').val());
+        var checkOut = new Date($('#checkout_date').val());
+        if (checkIn && checkOut && checkOut > checkIn) {
+            var timeDiff = checkOut - checkIn;
+            var nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            $('#nights_display').remove();
+            $('.rvbs-search-rv').prepend(
+                '<div id="nights_display" class="text-center mb-3">Booked for ' + nights + ' night' + (nights > 1 ? 's' : '') + '</div>'
+            );
+        }
+    }
+});
+</script>
+
 
     <!-- Our Rooms Section -->
     <div class="bg-light rvbs-search-rv">
@@ -195,6 +249,34 @@ if (!$is_fse_theme) {
                                         </div>
                                     </div>
                                 </div>
+
+
+                                <!-- price filter  -->
+                                 <!-- Filter by Price -->
+<div class="bg-light rounded mb-3 p-3">
+    <h6 class="mb-3 d-flex justify-content-between">
+        Starting Nightly Price
+        <span id="reset_price" onclick="clear_price()" class="text-secondary btn btn-sm">Reset</span>
+    </h6>
+    <ul class="list-unstyled">
+        <li>
+            <input type="radio" name="price_range" class="price-filter" value="0-25" id="price-less-25">
+            <label for="price-less-25">Less than $25</label>
+        </li>
+        <li>
+            <input type="radio" name="price_range" class="price-filter" value="25-50" id="price-25-50">
+            <label for="price-25-50">$25 to $50</label>
+        </li>
+        <li>
+            <input type="radio" name="price_range" class="price-filter" value="50-75" id="price-50-75">
+            <label for="price-50-75">$50 to $75</label>
+        </li>
+        <li>
+            <input type="radio" name="price_range" class="price-filter" value="75+" id="price-over-75">
+            <label for="price-over-75">Over $75</label>
+        </li>
+    </ul>
+</div>
                             </div>
                         </div>
                     </nav>
@@ -256,7 +338,16 @@ if (!$is_fse_theme) {
                                         </div>
                                         <!-- Third Section (Price) -->
                                         <div class="col-md-3">
-                                            <p class="price">Starting at <strong>$20.00</strong> /night</p>
+
+                                    <?php 
+                                    
+                                    $price = get_post_meta(get_the_ID(), '_rv_lots_price', true);
+
+                                    ?>
+                       
+                       <p class="price">Starting at <strong>$<?php echo esc_html($price ? $price : '20.00'); ?></strong> /night</p>
+                       
+                                           
                                         </div>
                                     </div>
                                 </div>
