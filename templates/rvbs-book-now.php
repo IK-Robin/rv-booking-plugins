@@ -92,7 +92,7 @@ get_header();
         const lot_id = $(this).data('lot-id');
         const post_id = $(this).data('post-id');
         const check_in = $('#check_in').val();
-        const check_out = $('#check_out').val();
+        const check_out = $('#check_out').val(); 
         
         $.ajax({
             url: rvbs_ajax.ajax_url,
