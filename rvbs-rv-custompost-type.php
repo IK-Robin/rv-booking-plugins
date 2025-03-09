@@ -194,8 +194,16 @@ function rvbs_add_rv_lots_meta_boxes()
 
     add_meta_box(
         'rv-lots_guest',
-        __('Guest Details', 'rv-booking-plugin'),
+        __('Guest Details Adults', 'rv-booking-plugin'),
         'rv_lots_guest_callback',
+        'rv-lots',
+        'normal',
+        'high'
+    );
+    add_meta_box(
+        'rv_lots_children',
+        __('Guest Details Children', 'rv-booking-plugin'),
+        'rv_lots_children_callback',
         'rv-lots',
         'normal',
         'high'
@@ -223,44 +231,42 @@ add_action('add_meta_boxes', 'rvbs_add_rv_lots_meta_boxes');
 
 
 // Save meta box data for Price Details, Additional Images, and Guest Details.
-function rvbs_save_rv_lots_meta($post_id)
-{
-    // Verify nonces.
+function rvbs_save_rv_lots_meta($post_id) {
+    // Verify nonces
     if (
-        !isset($_POST['rv_lots_price_nonce']) || !wp_verify_nonce($_POST['rv_lots_price_nonce'], 'rv_lots_price_nonce') ||
-        !isset($_POST['rv_lots_guest_nonce']) || !wp_verify_nonce($_POST['rv_lots_guest_nonce'], 'rv_lots_guest_nonce')
+        (!isset($_POST['rv_lots_price_nonce']) || !wp_verify_nonce($_POST['rv_lots_price_nonce'], 'rv_lots_price_nonce')) ||
+        (!isset($_POST['rv_lots_guest_nonce']) || !wp_verify_nonce($_POST['rv_lots_guest_nonce'], 'rv_lots_guest_nonce')) ||
+        (!isset($_POST['rv_lots_children_nonce']) || !wp_verify_nonce($_POST['rv_lots_children_nonce'], 'rv_lots_children_nonce'))
     ) {
         return;
     }
 
-    // Check autosave.
+    // Check autosave
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
         return;
     }
 
-    // Check permissions.
+    // Check permissions
     if (!current_user_can('edit_post', $post_id)) {
         return;
     }
 
-    // Save Price Details.
+    // Save Price Details
     if (isset($_POST['rv_lots_price'])) {
         update_post_meta($post_id, '_rv_lots_price', sanitize_text_field($_POST['rv_lots_price']));
     }
 
-    // Save Guest Details.
-    if (isset($_POST['rv_lots_guest'])) {
-        update_post_meta($post_id, '_rv_lots_guest', sanitize_textarea_field($_POST['rv_lots_guest']));
+    // Save Max Adults
+    if (isset($_POST['max_adults'])) {
+        update_post_meta($post_id, 'max_adults', absint($_POST['max_adults']));
     }
 
-    // Save Images Gallery.
-    // if (isset($_POST['rv_lot_images'])) {
-    //     $images = array_filter(array_map('trim', explode(',', sanitize_text_field($_POST['rv_lot_images']))));
-    //     update_post_meta($post_id, '_rv_lot_images', $images);
-    // }
+    // Save Max Children
+    if (isset($_POST['max_children'])) {
+        update_post_meta($post_id, 'max_children', absint($_POST['max_children']));
+    }
 }
 add_action('save_post', 'rvbs_save_rv_lots_meta');
-
 
 // Callback for Price Details meta box
 function rv_lots_price_callback($post)
@@ -272,16 +278,27 @@ function rv_lots_price_callback($post)
 }
 
 
-// Callback for Guest Details meta box
-function rv_lots_guest_callback($post)
-{
+// Callback for Guest Details Adults Metabox
+function rv_lots_guest_callback($post) {
     wp_nonce_field('rv_lots_guest_nonce', 'rv_lots_guest_nonce');
-    $guest_details = get_post_meta($post->ID, '_rv_lots_guest', true);
-    echo '<label for="rv_lots_guest">' . __('Guest Details', 'rv-booking-plugin') . '</label>';
-    echo '<input id="rv_lots_guest" name="rv_lots_guest" type="number" value="' . esc_attr($guest_details) . '" />';
-    echo '<p class="description">' . __('Enter guest-related details such as maximum occupancy, rules, etc.', 'rv-booking-plugin') . '</p>';
+    $max_adults = get_post_meta($post->ID, 'max_adults', true);
+    ?>
+    <label for="max_adults"><?php _e('Maximum Adults', 'rv-booking-plugin'); ?></label>
+    <input id="max_adults" name="max_adults" type="number" min="0" value="<?php echo esc_attr($max_adults); ?>" class="widefat" />
+    <p class="description"><?php _e('Enter the maximum number of adults allowed.', 'rv-booking-plugin'); ?></p>
+    <?php
 }
 
+// Callback for Guest Details Children Metabox
+function rv_lots_children_callback($post) {
+    wp_nonce_field('rv_lots_children_nonce', 'rv_lots_children_nonce');
+    $max_children = get_post_meta($post->ID, 'max_children', true);
+    ?>
+    <label for="max_children"><?php _e('Maximum Children', 'rv-booking-plugin'); ?></label>
+    <input id="max_children" name="max_children" type="number" min="0" value="<?php echo esc_attr($max_children); ?>" class="widefat" />
+    <p class="description"><?php _e('Enter the maximum number of children allowed.', 'rv-booking-plugin'); ?></p>
+    <?php
+}
 
 
 
