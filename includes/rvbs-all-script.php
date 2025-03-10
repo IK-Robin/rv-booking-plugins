@@ -21,4 +21,11 @@ add_action('wp_enqueue_scripts', 'rvbs_add_all_script');
 
 
 
+function enqueue_flatpickr() {
+    wp_enqueue_style('flatpickr-css', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css');
+    wp_enqueue_script('flatpickr-js', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js', array(), null, true);
+}
+add_action('wp_enqueue_scripts', 'enqueue_flatpickr');
+
+
 ?>
