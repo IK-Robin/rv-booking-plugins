@@ -2,7 +2,38 @@
 /*
 Template Name: Book Now
 */
-get_header();
+
+// Check if the theme is block-based (Full Site Editing)
+$is_fse_theme = wp_is_block_theme();
+
+
+?>
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+    <meta charset="<?php bloginfo('charset'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php 
+    wp_head(); // Ensures styles & scripts are loaded
+
+    // Load global styles for block themes (necessary for FSE)
+    if ($is_fse_theme) {
+        $global_styles = file_get_contents(get_template_directory() . '/style.css');
+        echo '<style>' . $global_styles . '</style>';
+    }
+    ?>
+</head>
+<body <?php body_class(); ?>>
+
+<?php
+// Load the correct header
+if (!$is_fse_theme) {
+    get_header(); // Classic Theme
+} else {
+    echo do_blocks('<!-- wp:template-part {"slug":"header"} /-->'); // Block Theme Header
+}
+
+
 
 // Get the post ID and query parameters from the URL
 $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
@@ -149,7 +180,7 @@ $check_out_formatted = $check_out ? (new DateTime($check_out))->format('D, M d')
                         <h3 class="h6 text-muted">1. Trip Details</h3>
                         <div class="mb-3 calendar-container">
                             <label class="form-label">Dates</label>
-                            <div id="dateDisplay" class="date-display" onclick="openCalendar()">
+                            <div id="dateDisplay" class="date-display">
                                 <span id="checkInText"><?php echo $check_in_formatted; ?></span>
                                 <span style='color: black;'>→</span>
                                 <span id="checkOutText"><?php echo $check_out_formatted; ?></span>
@@ -259,18 +290,54 @@ $check_out_formatted = $check_out ? (new DateTime($check_out))->format('D, M d')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 
-<script>
-jQuery(document).ready(function($) {
-    let fpInstance;
-
-    function openCalendar() {
-        if (fpInstance) {
-            fpInstance.open();
-        }
+<style>
+    .calendar-container {
+        background: white;
+        padding: 0;
+        border-radius: 8px;
+        text-align: center;
+        position: relative;
     }
+    .date-display {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        width: 100%;
+        cursor: pointer;
+        background: white;
+        color: #999;
+        font-size: 16px;
+    }
+    .date-display.active {
+        color: black;
+    }
+    .date-display span {
+        margin: 0 5px;
+        color: black;
+    }
+    .hidden-inputs {
+        display: none;
+    }
+    .flatpickr-calendar {
+        top: 100% !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+</style>
 
+<script>
+window.openCalendar = function() {
+    if (window.fpInstance) {
+        window.fpInstance.open();
+    }
+};
+
+jQuery(document).ready(function($) {
     // Initialize Flatpickr
-    fpInstance = flatpickr("#dateRange", {
+    window.fpInstance = flatpickr("#dateRange", {
         mode: "range",
         dateFormat: "Y-m-d",
         minDate: "today",
@@ -305,6 +372,11 @@ jQuery(document).ready(function($) {
             }
         },
         appendTo: document.querySelector('.calendar-container')
+    });
+
+    // Attach click event to dateDisplay
+    $('#dateDisplay').on('click', function() {
+        window.openCalendar();
     });
 
     // Handle form submission
@@ -389,4 +461,13 @@ jQuery(document).ready(function($) {
 });
 </script>
 
-<?php get_footer(); ?>
+<?php
+// Load the correct footer
+if (!$is_fse_theme) {
+    get_footer(); // Classic Theme
+} else {
+    echo do_blocks('<!-- wp:template-part {"slug":"footer"} /-->'); // Block Theme Footer
+}
+?>
+
+<?php wp_footer(); // Ensures scripts & footer styles load ?>
