@@ -10,6 +10,47 @@
   flex-grow: 1;
   width: 75%;
 }
+.rvbs-search-rv .content {
+  background: rgb(200, 200, 200);
+  height: 300px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.rvbs-search-rv .calendar-container {
+  background: white;
+  padding: 0;
+  border-radius: 8px;
+  text-align: center;
+  position: relative;
+}
+.rvbs-search-rv .date-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  width: 100%;
+  cursor: pointer;
+  background: white;
+  color: #999;
+  font-size: 16px;
+}
+.rvbs-search-rv .date-display.active {
+  color: black;
+}
+.rvbs-search-rv .date-display span {
+  margin: 0 5px;
+  color: black;
+}
+.rvbs-search-rv .hidden-inputs {
+  display: none;
+}
+.rvbs-search-rv .flatpickr-calendar {
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
 @media screen and (max-width: 992px) {
   .rvbs-search-rv {
     /* Ensure the collapsible filter content scrolls */

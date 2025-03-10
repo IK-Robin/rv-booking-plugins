@@ -22,7 +22,47 @@
   //   padding: 20px;
   //   margin-bottom: 20px;
   // }
-
+  .content {
+    background: rgb(200, 200, 200);
+    height: 300px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.calendar-container {
+    background: white;
+    padding: 0;
+    border-radius: 8px;
+    text-align: center;
+    position: relative;
+}
+.date-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
+    background: white;
+    color: #999;
+    font-size: 16px;
+}
+.date-display.active {
+    color: black;
+}
+.date-display span {
+    margin: 0 5px;
+    color: black;
+}
+.hidden-inputs {
+    display: none;
+}
+.flatpickr-calendar {
+    top: 100% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
   
 
   @media screen and (max-width: 992px) {
