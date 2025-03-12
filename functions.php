@@ -257,7 +257,7 @@ if (!empty($price_range)) {
                    </div>
                    <div class="col-md-5">
                        <h5 class="card-title">
-                           <a href="<?php echo home_url('/booknow?post_id=' . get_the_ID() . '&check_in=' . $check_in . '&check_out=' . $check_out . '&adults=' . $adults . '&children=' . $children); ?>">
+                           <a href="<?php echo home_url('/booknow?campsite=' . get_the_ID() . '&check_in=' . $check_in . '&check_out=' . $check_out . '&adults=' . $adults . '&children=' . $children); ?>">
                                <?php the_title(); ?>
                            </a>
                        </h5>
@@ -282,7 +282,7 @@ if (!empty($price_range)) {
                            echo '</p>';
                        }
                        ?>
-                       <a href="<?php echo home_url('/booknow?post_id=' . get_the_ID() . '&check_in=' . $check_in . '&check_out=' . $check_out . '&adults=' . $adults . '&children=' . $children); ?>" 
+                       <a href="<?php echo home_url('/booknow?campsite=' . get_the_ID() . '&check_in=' . $check_in . '&check_out=' . $check_out . '&adults=' . $adults . '&children=' . $children); ?>" 
                           class="btn btn-primary" target="_blank" rel="noopener noreferrer">
                           Book Now
                        </a>
@@ -429,18 +429,45 @@ function rvbs_book_lot()
 
     global $wpdb;
     $table_bookings = $wpdb->prefix . 'rvbs_bookings';
+    $table_rv_lots = $wpdb->prefix . 'rvbs_rv_lots'; // Assuming this is your custom RV lots table
 
-    $lot_id = intval($_POST['lot_id']);
-    $post_id = intval($_POST['post_id']);
+    // Get data from the AJAX request
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+    $lot_id = isset($_POST['lot_id']) ? intval($_POST['lot_id']) : $post_id; // Use post_id if lot_id isn’t provided separately
     $check_in = sanitize_text_field($_POST['check_in']);
     $check_out = sanitize_text_field($_POST['check_out']);
     $user_id = get_current_user_id();
 
-    // Calculate total price (example calculation, modify as needed)
+    // Validate required fields
+    if (!$post_id || !$check_in || !$check_out) {
+        wp_send_json_error('Missing required fields.');
+    }
+
+    // Check if the lot exists in wp_rvbs_rv_lots (adjust this query based on your table structure)
+    $lot_exists = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM $table_rv_lots WHERE id = %d",
+        $lot_id
+    ));
+
+    if (!$lot_exists) {
+        // If lot_id doesn’t exist, try to map post_id to lot_id (adjust this based on your setup)
+        $lot_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_rv_lots WHERE post_id = %d",
+            $post_id
+        ));
+
+        if (!$lot_id) {
+            wp_send_json_error('Invalid lot ID: The specified lot does not exist.');
+        }
+    }
+
+    // Calculate total price
     $start = new DateTime($check_in);
     $end = new DateTime($check_out);
     $days = $start->diff($end)->days;
-    $price_per_day = 50; // Example price, adjust as needed
+
+    // Fetch price from post meta (or adjust to fetch from wp_rvbs_rv_lots if stored there)
+    $price_per_day = floatval(get_post_meta($post_id, '_rv_lots_price', true)) ?: 50.00; // Default to 50 if not set
     $total_price = $days * $price_per_day;
 
     // Insert booking
@@ -459,10 +486,10 @@ function rvbs_book_lot()
         array('%d', '%d', '%d', '%s', '%s', '%f', '%s', '%s')
     );
 
-    if ($result) {
-        wp_send_json_success('Booking request submitted successfully!');
-    } else {
+    if ($result === false) {
         wp_send_json_error('Error creating booking: ' . $wpdb->last_error);
+    } else {
+        wp_send_json_success('Booking request submitted successfully!');
     }
 }
 add_action('wp_ajax_rvbs_book_lot', 'rvbs_book_lot');
