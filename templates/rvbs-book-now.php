@@ -5,8 +5,6 @@ Template Name: Book Now
 
 // Check if the theme is block-based (Full Site Editing)
 $is_fse_theme = wp_is_block_theme();
-
-
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -33,10 +31,8 @@ if (!$is_fse_theme) {
     echo do_blocks('<!-- wp:template-part {"slug":"header"} /-->'); // Block Theme Header
 }
 
-
-
 // Get the post ID and query parameters from the URL
-$post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
+$post_id = isset($_GET['campsite']) ? intval($_GET['campsite']) : 0;
 $check_in = isset($_GET['check_in']) ? sanitize_text_field($_GET['check_in']) : '';
 $check_out = isset($_GET['check_out']) ? sanitize_text_field($_GET['check_out']) : '';
 $adults = isset($_GET['adults']) ? intval($_GET['adults']) : 1;
@@ -238,7 +234,7 @@ $check_out_formatted = $check_out ? (new DateTime($check_out))->format('D, M d')
                         <h3 class="h6 text-muted">3. Choose Your Site</h3>
                         <div class="mb-3">
                             <label class="form-label">Site Location</label>
-                            <input type="text" class="form-control" id="site_location" name="site_location" placeholder="e.g., Lot #5">
+                            <input type="text" class="form-control" id="site_location" name="site_location" value="<?php echo esc_attr($lot->post_title); ?>" placeholder="e.g., Lot #5">
                         </div>
                     </div>
 
@@ -275,6 +271,7 @@ $check_out_formatted = $check_out ? (new DateTime($check_out))->format('D, M d')
                     <!-- Add to Cart Button -->
                     <button type="submit" class="btn btn-success w-100">Add to Cart</button>
                     <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
+                    <input type="hidden" name="room_title" value="<?php echo esc_attr($lot->post_title); ?>">
                 </form>
             </div>
         </div>
@@ -335,12 +332,63 @@ window.openCalendar = function() {
     }
 };
 
+
+window.openCalendar = function() {
+    if (window.fpInstance && typeof window.fpInstance.open === 'function') {
+        window.fpInstance.open();
+    } else {
+        console.error('Flatpickr instance not initialized or open method not available.');
+    }
+};
+
 jQuery(document).ready(function($) {
-    // Initialize Flatpickr
+    // Initialize Flatpickr once
     window.fpInstance = flatpickr("#dateRange", {
         mode: "range",
         dateFormat: "Y-m-d",
         minDate: "today",
+        defaultDate: [<?php echo $check_in ? "'$check_in'" : 'null'; ?>, <?php echo $check_out ? "'$check_out'" : 'null'; ?>],
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                const getISODate = date => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+
+                const check_in = getISODate(selectedDates[0]);
+                const check_out = getISODate(selectedDates[1]);
+
+                // Update hidden inputs
+                $('#check_in').val(check_in);
+                $('#check_out').val(check_out);
+
+                // Check availability
+                $.ajax({
+                    url: rvbs_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'rvbs_check_availability',
+                        nonce: rvbs_ajax.nonce,
+                        post_id: $('input[name="post_id"]').val(),
+                        check_in: check_in,
+                        check_out: check_out
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#add-to-cart-btn').prop('disabled', false).text('Add to Cart');
+                        } else {
+                            $('#add-to-cart-btn').prop('disabled', true).text('Unavailable');
+                            alert('This lot is not available for the selected dates.');
+                        }
+                    },
+                    error: function() {
+                        alert('Error checking availability.');
+                    }
+                });
+            }
+        },
         onClose: function(selectedDates) {
             if (selectedDates.length === 2) {
                 const formatDate = date => date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
@@ -367,7 +415,7 @@ jQuery(document).ready(function($) {
                 const campground_fees = 5.00;
                 const total = subtotal + campground_fees;
 
-                $('.d-flex:contains("Nights") span:nth-child(2)').text('$' + subtotal.toFixed(2));
+                $('.d-flex:contains("Nights")').html(`<span>$${price.toFixed(2)} x ${nights} Nights</span><span>$${subtotal.toFixed(2)}</span>`);
                 $('.d-flex:contains("Site Total") span:nth-child(2)').text('$' + total.toFixed(2));
             }
         },
@@ -384,6 +432,7 @@ jQuery(document).ready(function($) {
         e.preventDefault();
 
         const post_id = $('input[name="post_id"]').val();
+        const room_title = $('input[name="room_title"]').val();
         const check_in = $('#check_in').val();
         const check_out = $('#check_out').val();
         const adults = $('#adults').val();
@@ -421,7 +470,9 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'rvbs_book_lot',
                 nonce: rvbs_ajax.nonce,
+                lot_id: post_id,
                 post_id: post_id,
+                room_title: room_title,
                 check_in: check_in,
                 check_out: check_out,
                 adults: adults,
@@ -436,7 +487,7 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    alert('Booking added to cart successfully!');
+                    alert('Booking added to cart successfully!\nRoom: ' + room_title);
                     // Optionally redirect to a cart page
                     // window.location.href = '<?php echo home_url('/cart'); ?>';
                 } else {
@@ -460,6 +511,7 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
+
 
 <?php
 // Load the correct footer

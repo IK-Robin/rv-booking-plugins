@@ -211,7 +211,7 @@ $is_fse_theme = wp_is_block_theme();
                                                 <!-- Second Section (Details) -->
                                                 <div class="col-md-5">
                                                     <h5 class="card-title">
-                                                        <a href="<?php echo home_url('/booknow?post_id=' . get_the_ID() . '&check_in=' . date('Y-m-d') . '&check_out=' . date('Y-m-d', strtotime('+1 day'))); ?>"><?php the_title(); ?></a>
+                                                        <a href="<?php echo home_url('/booknow?campsite=' . get_the_ID() . '&check_in=' . date('Y-m-d') . '&check_out=' . date('Y-m-d', strtotime('+1 day'))); ?>"><?php the_title(); ?></a>
                                                     </h5>
                                                     <p class="card-text"><?php the_excerpt(); ?></p>
                                                     <?php
@@ -232,7 +232,7 @@ $is_fse_theme = wp_is_block_theme();
                                                         echo '</p>';
                                                     endif;
                                                     ?>
-                                                    <a href="<?php echo home_url('/booknow?post_id=' . get_the_ID() . '&check_in=' . date('Y-m-d') . '&check_out=' . date('Y-m-d', strtotime('+1 day'))); ?>"
+                                                    <a href="<?php echo home_url('/booknow?campsite=' . get_the_ID() . '&check_in=' . date('Y-m-d') . '&check_out=' . date('Y-m-d', strtotime('+1 day'))); ?>"
                                                         class="btn btn-primary" target="_blank" rel="noopener noreferrer">
                                                         Book Now
                                                     </a>
