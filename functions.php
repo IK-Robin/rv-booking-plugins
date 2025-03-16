@@ -21,6 +21,11 @@ require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-db-handel/rvbs-register-a
 require_once RVBS_BOOKING_PLUGIN_DIR . 'rvbs-rv-custompost-type.php';
 
 
+// load the custom menu item in the plugin
+
+require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-custom-menu-item.php';
+
+
 // // Hook to include custom template from plugin
 
 // function my_custom_plugin_add_template($templates) {
