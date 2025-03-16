@@ -179,112 +179,112 @@ $is_fse_theme = wp_is_block_theme();
             <!-- Right Section: Booking Form -->
             <div class="col-lg-4">
                 <div class="card shadow-sm p-4 sticky-top" style="top: 20px;">
-                    <form id="booking-form">
-                        <!-- Step 1: Trip Details -->
-                        <div class="mb-4">
-                            <h3 class="h6 text-muted">1. Trip Details</h3>
-                            <!-- add the post of the campsite -->
-                            <input type="hidden" name="campsite" value="<?php echo $post_id; ?>">
-                            <div class="mb-1 calendar-container">
-                                <label class="form-label">Dates</label>
-                                <div id="dateDisplay" class="date-display">
-                                    <span id="checkInText"><?php echo $check_in_formatted; ?></span>
-                                    <span style='color: black;'>→</span>
-                                    <span id="checkOutText"><?php echo $check_out_formatted; ?></span>
-                                </div>
-                                <p id="dateError" class="m-0" style="color: red;"></p>
-                                <input type="text" id="dateRange" style="position: absolute; opacity: 0; height: 0; width: 0; padding: 0; border: none;">
-                                <div class="hidden-inputs">
-                                    <input type="hidden" id="check_in" name="check_in" value="<?php echo esc_attr($check_in); ?>">
-                                    <input type="hidden" id="check_out" name="check_out" value="<?php echo esc_attr($check_out); ?>">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Guests</label>
-                                <select class="form-select" id="guests" name="guests">
-                                    <option value="<?php echo $adults; ?>" selected><?php echo $adults; ?> Adults<?php echo $children ? ', ' . $children . ' Children' : ''; ?></option>
-                                    <option default value="1">1 Adult</option>
-                                    <option value="2">2 Adults</option>
-                                    <option value="3">3 Adults</option>
-                                    <option value="4">4 Adults</option>
-                                </select>
-                                <input type="hidden" id="adults" name="adults" value="<?php echo esc_attr($adults); ?>">
-                                <input type="hidden" id="children" name="children" value="<?php echo esc_attr($children); ?>">
-                            </div>
-                        </div>
+                <form id="booking-form">
+    <!-- Step 1: Trip Details -->
+    <div class="mb-4">
+        <h3 class="h6 text-muted">1. Trip Details</h3>
+        <!-- add hidden input id  -->
+        <input type="hidden" name="campsite" value="<?php echo $post_id; ?>">
+        <div class="mb-1 calendar-container">
+            <label class="form-label">Dates</label>
+            <div id="dateDisplay" class="date-display">
+                <span id="checkInText"><?php echo $check_in_formatted ?: 'Check In'; ?></span>
+                <span style='color: black;'>→</span>
+                <span id="checkOutText"><?php echo $check_out_formatted ?: 'Check Out'; ?></span>
+            </div>
+            <p id="dateError" class="m-0" style="color: red;"></p>
+            <input type="text" id="dateRange" style="position: absolute; opacity: 0; height: 0; width: 0; padding: 0; border: none;">
+            <div class="hidden-inputs">
+                <input type="hidden" id="check_in" name="check_in" value="<?php echo esc_attr($check_in ?: ''); ?>">
+                <input type="hidden" id="check_out" name="check_out" value="<?php echo esc_attr($check_out ?: ''); ?>">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Guests</label>
+            <select class="form-select" id="guests" name="guests">
+                <option value="1" <?php echo ($adults == 1) ? 'selected' : ''; ?>>1 Adult</option>
+                <option value="2" <?php echo ($adults == 2) ? 'selected' : ''; ?>>2 Adults</option>
+                <option value="3" <?php echo ($adults == 3) ? 'selected' : ''; ?>>3 Adults</option>
+                <option value="4" <?php echo ($adults == 4) ? 'selected' : ''; ?>>4 Adults</option>
+            </select>
+            <input type="hidden" id="adults" name="adults" value="<?php echo esc_attr($adults ?: '1'); ?>">
+            <input type="hidden" id="children" name="children" value="<?php echo esc_attr($children ?: '0'); ?>">
+        </div>
+    </div>
 
-                        <!-- Step 2: Equipment Details -->
-                        <div class="mb-4">
-                            <h3 class="h6 text-muted">2. Equipment Details</h3>
-                            <div class="mb-3">
-                                <label class="form-label">Equipment Type</label>
-                                <select class="form-select" id="equipment_type" name="equipment_type">
-                                    <option value="">Select Equipment Type</option>
-                                    <option default value="rv">RV</option>
-                                    <option value="tent">Tent</option>
-                                    <option value="trailer">Trailer</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Length (ft)</label>
-                                <input type="number" class="form-control" id="length_ft" name="length_ft" min="0" placeholder="e.g., 30">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Slide-Outs</label>
-                                <select class="form-select" id="slide_outs" name="slide_outs">
-                                    <option value="">Select Slide-Outs</option>
-                                    <option default value="0">0 Slide-Outs</option>
-                                    <option value="1">1 Slide-Out</option>
-                                    <option value="2">2 Slide-Outs</option>
-                                    <option value="3">3 Slide-Outs</option>
-                                </select>
-                            </div>
-                        </div>
+    <!-- Step 2: Equipment Details -->
+    <div class="mb-4">
+        <h3 class="h6 text-muted">2. Equipment Details</h3>
+        <div class="mb-3">
+            <label class="form-label">Equipment Type</label>
+            <select class="form-select" id="equipment_type" name="equipment_type">
+                <option value="">Select Equipment Type</option>
+                <option value="rv" <?php echo ($equipment_type == 'rv') ? 'selected' : ''; ?>>RV</option>
+                <option value="tent" <?php echo ($equipment_type == 'tent') ? 'selected' : ''; ?>>Tent</option>
+                <option value="trailer" <?php echo ($equipment_type == 'trailer') ? 'selected' : ''; ?>>Trailer</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Length (ft)</label>
+            <input type="number" class="form-control" id="length_ft" name="length_ft" min="0" placeholder="e.g., 30" value="<?php echo esc_attr($length_ft ?: ''); ?>">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Slide-Outs</label>
+            <select class="form-select" id="slide_outs" name="slide_outs">
+                <option value="">Select Slide-Outs</option>
+                <option value="0" <?php echo ($slide_outs == '0') ? 'selected' : ''; ?>>0 Slide-Outs</option>
+                <option value="1" <?php echo ($slide_outs == '1') ? 'selected' : ''; ?>>1 Slide-Out</option>
+                <option value="2" <?php echo ($slide_outs == '2') ? 'selected' : ''; ?>>2 Slide-Outs</option>
+                <option value="3" <?php echo ($slide_outs == '3') ? 'selected' : ''; ?>>3 Slide-Outs</option>
+            </select>
+        </div>
+    </div>
 
-                        <!-- Step 3: Choose Your Site -->
-                        <div class="mb-4">
-                            <h3 class="h6 text-muted">3. Choose Your Site</h3>
-                            <div class="mb-3">
-                                <label class="form-label">Site Location</label>
-                                <input type="text" class="form-control" id="site_location" name="site_location" value="<?php echo esc_attr($lot->post_title); ?>" placeholder="e.g., Lot #5">
-                            </div>
-                        </div>
+    <!-- Step 3: Choose Your Site -->
+    <div class="mb-4">
+        <h3 class="h6 text-muted">3. Choose Your Site</h3>
+        <div class="mb-3">
+            <label class="form-label">Site Location</label>
+            <input type="text" class="form-control" id="site_location" name="site_location" value="<?php echo esc_attr($lot->post_title ?: ''); ?>" placeholder="e.g., Lot #5">
+        </div>
+    </div>
 
-                        <!-- Price Breakdown -->
-                        <div class="mb-4">
-                            <?php
-                            $nightly_rate = $price;
-                            $subtotal = $nightly_rate * $nights;
-                            $weekly_rate = 0; // Adjust if you have a weekly rate logic
-                            $campground_fees = 5.00; // Example fee
-                            $total = $subtotal + $campground_fees;
-                            ?>
-                            <div class="d-flex justify-content-between">
-                                <span>$<?php echo number_format($nightly_rate, 2); ?> x <?php echo $nights; ?> Nights</span>
-                                <span>$<?php echo number_format($subtotal, 2); ?></span>
-                            </div>
-                            <?php if ($weekly_rate > 0) : ?>
-                                <div class="d-flex justify-content-between text-muted">
-                                    <span>Weekly Rate</span>
-                                    <span>-$<?php echo number_format($weekly_rate, 2); ?></span>
-                                </div>
-                            <?php endif; ?>
-                            <div class="d-flex justify-content-between text-muted">
-                                <span>Campground Fees</span>
-                                <span>$<?php echo number_format($campground_fees, 2); ?></span>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between fw-bold">
-                                <span>Site Total</span>
-                                <span>$<?php echo number_format($total, 2); ?></span>
-                            </div>
-                        </div>
+    <!-- Price Breakdown -->
+    <div class="mb-4">
+        <?php
+        $nightly_rate = $price ?: 0;
+        $subtotal = $nightly_rate * ($nights ?: 1);
+        $weekly_rate = 0; // Adjust if you have a weekly rate logic
+        $campground_fees = 5.00; // Example fee
+        $total = $subtotal + $campground_fees;
+        ?>
+        <div class="d-flex justify-content-between">
+            <span>$<?php echo number_format($nightly_rate, 2); ?> x <?php echo ($nights ?: 1); ?> Nights</span>
+            <span>$<?php echo number_format($subtotal, 2); ?></span>
+        </div>
+        <?php if ($weekly_rate > 0) : ?>
+            <div class="d-flex justify-content-between text-muted">
+                <span>Weekly Rate</span>
+                <span>-$<?php echo number_format($weekly_rate, 2); ?></span>
+            </div>
+        <?php endif; ?>
+        <div class="d-flex justify-content-between text-muted">
+            <span>Campground Fees</span>
+            <span>$<?php echo number_format($campground_fees, 2); ?></span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold">
+            <span>Site Total</span>
+            <span>$<?php echo number_format($total, 2); ?></span>
+        </div>
+    </div>
 
-                        <!-- Add to Cart Button -->
-                        <button type="submit" class="btn btn-success w-100">Add to Cart</button>
-                        <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
-                        <input type="hidden" name="room_title" value="<?php echo esc_attr($lot->post_title); ?>">
-                    </form>
+    <!-- Add to Cart Button -->
+    <button type="submit" class="btn btn-success w-100">Add to Cart</button>
+    <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
+    <input type="hidden" name="room_title" value="<?php echo esc_attr($lot->post_title ?: ''); ?>">
+</form>
+
                 </div>
             </div>
         </div>
