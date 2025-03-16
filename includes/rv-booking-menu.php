@@ -26,4 +26,4 @@ function rv_booking_system_menu_register (){
  * @link  functons.php
  * @see importent_shortcode.php
  */
-require RV_BOOKING_STYTEM_PATH . '/includes/importent_shortcordes.php';
+require RVBS_BOOKING_PLUGIN_DIR . '/includes/importent_shortcordes.php';
