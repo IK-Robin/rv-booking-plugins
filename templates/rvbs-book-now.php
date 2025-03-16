@@ -179,111 +179,179 @@ $is_fse_theme = wp_is_block_theme();
             <!-- Right Section: Booking Form -->
             <div class="col-lg-4">
                 <div class="card shadow-sm p-4 sticky-top" style="top: 20px;">
-                <form id="booking-form">
-    <!-- Step 1: Trip Details -->
-    <div class="mb-4">
-        <h3 class="h6 text-muted">1. Trip Details</h3>
-        <!-- add hidden input id  -->
-        <input type="hidden" name="campsite" value="<?php echo $post_id; ?>">
-        <div class="mb-1 calendar-container">
-            <label class="form-label">Dates</label>
-            <div id="dateDisplay" class="date-display">
-                <span id="checkInText"><?php echo $check_in_formatted ?: 'Check In'; ?></span>
-                <span style='color: black;'>→</span>
-                <span id="checkOutText"><?php echo $check_out_formatted ?: 'Check Out'; ?></span>
+                    <form id="booking-form">
+                        <!-- Step 1: Trip Details -->
+                        <div class="mb-4">
+                            <h3 class="h6 text-muted">1. Trip Details</h3>
+                            <!-- add hidden input id  -->
+                            <input type="hidden" name="campsite" value="<?php echo $post_id; ?>">
+                            <div class="mb-1 calendar-container">
+                                <label class="form-label">Dates</label>
+                                <div id="dateDisplay" class="date-display">
+                                    <span id="checkInText"><?php echo $check_in_formatted ?: 'Check In'; ?></span>
+                                    <span style='color: black;'>→</span>
+                                    <span id="checkOutText"><?php echo $check_out_formatted ?: 'Check Out'; ?></span>
+                                </div>
+                                <p id="dateError" class="m-0" style="color: red;"></p>
+                                <input type="text" id="dateRange" style="position: absolute; opacity: 0; height: 0; width: 0; padding: 0; border: none;">
+                                <div class="hidden-inputs">
+                                    <input type="hidden" id="check_in" name="check_in" value="<?php echo esc_attr($check_in ?: ''); ?>">
+                                    <input type="hidden" id="check_out" name="check_out" value="<?php echo esc_attr($check_out ?: ''); ?>">
+                                </div>
+                            </div>
+                            <div class="mb-3 position-relative">
+    <label class="form-label">Guests</label>
+    <button id="guestDropdownBtn" type="button" class="form-select text-start">
+        <span id="guestSummary">2 Adults, 2 Children, 2 Pets</span>
+    </button>
+    <div id="guestDropdown" class="card shadow-sm p-3 position-absolute bg-white d-none" style="z-index: 1000;">
+        <h6>Number of Guests</h6>
+        <div id="adultsWrapper" class="d-flex justify-content-between align-items-center mb-2">
+            <span>Adults</span>
+            <div class="input-group input-group-sm">
+                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('adults', -1)">-</button>
+                <input id="adultsCount" type="text" class="form-control text-center" value="2" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('adults', 1)">+</button>
             </div>
-            <p id="dateError" class="m-0" style="color: red;"></p>
-            <input type="text" id="dateRange" style="position: absolute; opacity: 0; height: 0; width: 0; padding: 0; border: none;">
-            <div class="hidden-inputs">
-                <input type="hidden" id="check_in" name="check_in" value="<?php echo esc_attr($check_in ?: ''); ?>">
-                <input type="hidden" id="check_out" name="check_out" value="<?php echo esc_attr($check_out ?: ''); ?>">
+        </div>
+        <div id="childrenWrapper" class="d-flex justify-content-between align-items-center mb-2">
+            <span>Children</span>
+            <div class="input-group input-group-sm">
+                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('children', -1)">-</button>
+                <input id="childrenCount" type="text" class="form-control text-center" value="2" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('children', 1)">+</button>
             </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Guests</label>
-            <select class="form-select" id="guests" name="guests">
-                <option value="1" <?php echo ($adults == 1) ? 'selected' : ''; ?>>1 Adult</option>
-                <option value="2" <?php echo ($adults == 2) ? 'selected' : ''; ?>>2 Adults</option>
-                <option value="3" <?php echo ($adults == 3) ? 'selected' : ''; ?>>3 Adults</option>
-                <option value="4" <?php echo ($adults == 4) ? 'selected' : ''; ?>>4 Adults</option>
-            </select>
-            <input type="hidden" id="adults" name="adults" value="<?php echo esc_attr($adults ?: '1'); ?>">
-            <input type="hidden" id="children" name="children" value="<?php echo esc_attr($children ?: '0'); ?>">
-        </div>
-    </div>
-
-    <!-- Step 2: Equipment Details -->
-    <div class="mb-4">
-        <h3 class="h6 text-muted">2. Equipment Details</h3>
-        <div class="mb-3">
-            <label class="form-label">Equipment Type</label>
-            <select class="form-select" id="equipment_type" name="equipment_type">
-                <option value="">Select Equipment Type</option>
-                <option value="rv" <?php echo ($equipment_type == 'rv') ? 'selected' : ''; ?>>RV</option>
-                <option value="tent" <?php echo ($equipment_type == 'tent') ? 'selected' : ''; ?>>Tent</option>
-                <option value="trailer" <?php echo ($equipment_type == 'trailer') ? 'selected' : ''; ?>>Trailer</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Length (ft)</label>
-            <input type="number" class="form-control" id="length_ft" name="length_ft" min="0" placeholder="e.g., 30" value="<?php echo esc_attr($length_ft ?: ''); ?>">
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Slide-Outs</label>
-            <select class="form-select" id="slide_outs" name="slide_outs">
-                <option value="">Select Slide-Outs</option>
-                <option value="0" <?php echo ($slide_outs == '0') ? 'selected' : ''; ?>>0 Slide-Outs</option>
-                <option value="1" <?php echo ($slide_outs == '1') ? 'selected' : ''; ?>>1 Slide-Out</option>
-                <option value="2" <?php echo ($slide_outs == '2') ? 'selected' : ''; ?>>2 Slide-Outs</option>
-                <option value="3" <?php echo ($slide_outs == '3') ? 'selected' : ''; ?>>3 Slide-Outs</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Step 3: Choose Your Site -->
-    <div class="mb-4">
-        <h3 class="h6 text-muted">3. Choose Your Site</h3>
-        <div class="mb-3">
-            <label class="form-label">Site Location</label>
-            <input type="text" class="form-control" id="site_location" name="site_location" value="<?php echo esc_attr($lot->post_title ?: ''); ?>" placeholder="e.g., Lot #5">
-        </div>
-    </div>
-
-    <!-- Price Breakdown -->
-    <div class="mb-4">
-        <?php
-        $nightly_rate = $price ?: 0;
-        $subtotal = $nightly_rate * ($nights ?: 1);
-        $weekly_rate = 0; // Adjust if you have a weekly rate logic
-        $campground_fees = 5.00; // Example fee
-        $total = $subtotal + $campground_fees;
-        ?>
-        <div class="d-flex justify-content-between">
-            <span>$<?php echo number_format($nightly_rate, 2); ?> x <?php echo ($nights ?: 1); ?> Nights</span>
-            <span>$<?php echo number_format($subtotal, 2); ?></span>
-        </div>
-        <?php if ($weekly_rate > 0) : ?>
-            <div class="d-flex justify-content-between text-muted">
-                <span>Weekly Rate</span>
-                <span>-$<?php echo number_format($weekly_rate, 2); ?></span>
+        <div id="petsWrapper" class="d-flex justify-content-between align-items-center">
+            <span>Pets</span>
+            <div class="input-group input-group-sm">
+                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('pets', -1)">-</button>
+                <input id="petsCount" type="text" class="form-control text-center" value="2" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('pets', 1)">+</button>
             </div>
-        <?php endif; ?>
-        <div class="d-flex justify-content-between text-muted">
-            <span>Campground Fees</span>
-            <span>$<?php echo number_format($campground_fees, 2); ?></span>
-        </div>
-        <hr>
-        <div class="d-flex justify-content-between fw-bold">
-            <span>Site Total</span>
-            <span>$<?php echo number_format($total, 2); ?></span>
         </div>
     </div>
+    <input type="hidden" id="adultsInput" name="adults" value="2">
+    <input type="hidden" id="childrenInput" name="children" value="2">
+    <input type="hidden" id="petsInput" name="pets" value="2">
+</div>
 
-    <!-- Add to Cart Button -->
-    <button type="submit" class="btn btn-success w-100">Add to Cart</button>
-    <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
-    <input type="hidden" name="room_title" value="<?php echo esc_attr($lot->post_title ?: ''); ?>">
-</form>
+<script>
+    document.getElementById("guestDropdownBtn").addEventListener("click", function(event) {
+        event.stopPropagation();
+        document.getElementById("guestDropdown").classList.toggle("d-none");
+    });
+
+    document.addEventListener("click", function(event) {
+        const dropdown = document.getElementById("guestDropdown");
+        if (!dropdown.classList.contains("d-none") && !dropdown.contains(event.target) && event.target.id !== "guestDropdownBtn") {
+            dropdown.classList.add("d-none");
+        }
+    });
+
+    function updateGuests(type, change) {
+        const input = document.getElementById(`${type}Count`);
+        const hiddenInput = document.getElementById(`${type}Input`);
+        const wrapper = document.getElementById(`${type}Wrapper`);
+        
+        let newValue = parseInt(input.value) + change;
+        if (newValue < 0) newValue = 0;
+        
+        input.value = newValue;
+        hiddenInput.value = newValue;
+        
+        wrapper.style.display = newValue > 0 ? 'flex' : 'none';
+        updateGuestSummary();
+    }
+
+    function updateGuestSummary() {
+        const adults = document.getElementById("adultsCount").value;
+        const children = document.getElementById("childrenCount").value;
+        const pets = document.getElementById("petsCount").value;
+        
+        let summary = [];
+        if (adults > 0) summary.push(`${adults} Adults`);
+        if (children > 0) summary.push(`${children} Children`);
+        if (pets > 0) summary.push(`${pets} Pets`);
+        
+        document.getElementById("guestSummary").innerText = summary.length ? summary.join(", ") : "Select Guests";
+    }
+</script>
+
+                        </div>
+
+                        <!-- Step 2: Equipment Details -->
+                        <div class="mb-4">
+                            <h3 class="h6 text-muted">2. Equipment Details</h3>
+                            <div class="mb-3">
+                                <label class="form-label">Equipment Type</label>
+                                <select class="form-select" id="equipment_type" name="equipment_type">
+                                    <option value="">Select Equipment Type</option>
+                                    <option value="rv" <?php echo ($equipment_type == 'rv') ? 'selected' : ''; ?>>RV</option>
+                                    <option value="tent" <?php echo ($equipment_type == 'tent') ? 'selected' : ''; ?>>Tent</option>
+                                    <option value="trailer" <?php echo ($equipment_type == 'trailer') ? 'selected' : ''; ?>>Trailer</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Length (ft)</label>
+                                <input type="number" class="form-control" id="length_ft" name="length_ft" min="0" placeholder="e.g., 30" value="<?php echo esc_attr($length_ft ?: ''); ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Slide-Outs</label>
+                                <select class="form-select" id="slide_outs" name="slide_outs">
+                                    <option value="">Select Slide-Outs</option>
+                                    <option value="0" <?php echo ($slide_outs == '0') ? 'selected' : ''; ?>>0 Slide-Outs</option>
+                                    <option value="1" <?php echo ($slide_outs == '1') ? 'selected' : ''; ?>>1 Slide-Out</option>
+                                    <option value="2" <?php echo ($slide_outs == '2') ? 'selected' : ''; ?>>2 Slide-Outs</option>
+                                    <option value="3" <?php echo ($slide_outs == '3') ? 'selected' : ''; ?>>3 Slide-Outs</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Choose Your Site -->
+                        <div class="mb-4">
+                            <h3 class="h6 text-muted">3. Choose Your Site</h3>
+                            <div class="mb-3">
+                                <label class="form-label">Site Location</label>
+                                <input type="text" class="form-control" id="site_location" name="site_location" value="<?php echo esc_attr($lot->post_title ?: ''); ?>" placeholder="e.g., Lot #5">
+                            </div>
+                        </div>
+
+                        <!-- Price Breakdown -->
+                        <div class="mb-4">
+                            <?php
+                            $nightly_rate = $price ?: 0;
+                            $subtotal = $nightly_rate * ($nights ?: 1);
+                            $weekly_rate = 0; // Adjust if you have a weekly rate logic
+                            $campground_fees = 5.00; // Example fee
+                            $total = $subtotal + $campground_fees;
+                            ?>
+                            <div class="d-flex justify-content-between">
+                                <span>$<?php echo number_format($nightly_rate, 2); ?> x <?php echo ($nights ?: 1); ?> Nights</span>
+                                <span>$<?php echo number_format($subtotal, 2); ?></span>
+                            </div>
+                            <?php if ($weekly_rate > 0) : ?>
+                                <div class="d-flex justify-content-between text-muted">
+                                    <span>Weekly Rate</span>
+                                    <span>-$<?php echo number_format($weekly_rate, 2); ?></span>
+                                </div>
+                            <?php endif; ?>
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>Campground Fees</span>
+                                <span>$<?php echo number_format($campground_fees, 2); ?></span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Site Total</span>
+                                <span>$<?php echo number_format($total, 2); ?></span>
+                            </div>
+                        </div>
+
+                        <!-- Add to Cart Button -->
+                        <button type="submit" class="btn btn-success w-100">Add to Cart</button>
+                        <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
+                        <input type="hidden" name="room_title" value="<?php echo esc_attr($lot->post_title ?: ''); ?>">
+                    </form>
 
                 </div>
             </div>
@@ -338,217 +406,217 @@ $is_fse_theme = wp_is_block_theme();
     </style>
 
     <script>
-    window.openCalendar = function() {
-        if (window.fpInstance && typeof window.fpInstance.open === 'function') {
-            window.fpInstance.open();
-        } else {
-            console.error('Flatpickr instance not initialized or open method not available.');
-        }
-    };
+        window.openCalendar = function() {
+            if (window.fpInstance && typeof window.fpInstance.open === 'function') {
+                window.fpInstance.open();
+            } else {
+                console.error('Flatpickr instance not initialized or open method not available.');
+            }
+        };
 
-    jQuery(document).ready(function($) {
-        let isAvailable = false;
+        jQuery(document).ready(function($) {
+            let isAvailable = false;
 
-        // Initialize Flatpickr once
-        window.fpInstance = flatpickr("#dateRange", {
-    mode: "range",
-    dateFormat: "Y-m-d",
-    minDate: "today",
-    defaultDate: [<?php echo $check_in ? "'$check_in'" : 'null'; ?>, <?php echo $check_out ? "'$check_out'" : 'null'; ?>],
-    onChange: function(selectedDates) {
-        if (selectedDates.length === 2) {
-            const formatDate = date => {
-                return date.toLocaleDateString('en-US', {
-                    weekday: 'short', // 'D' => 'Mon', 'Tue', etc.
-                    month: 'short',   // 'M' => 'Jan', 'Feb', etc.
-                    day: '2-digit'    // 'd' => '02', '15', etc.
-                });
-            };
+            // Initialize Flatpickr once
+            window.fpInstance = flatpickr("#dateRange", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                minDate: "today",
+                defaultDate: [<?php echo $check_in ? "'$check_in'" : 'null'; ?>, <?php echo $check_out ? "'$check_out'" : 'null'; ?>],
+                onChange: function(selectedDates) {
+                    if (selectedDates.length === 2) {
+                        const formatDate = date => {
+                            return date.toLocaleDateString('en-US', {
+                                weekday: 'short', // 'D' => 'Mon', 'Tue', etc.
+                                month: 'short', // 'M' => 'Jan', 'Feb', etc.
+                                day: '2-digit' // 'd' => '02', '15', etc.
+                            });
+                        };
 
-            const getISODate = date => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            };
+                        const getISODate = date => {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            return `${year}-${month}-${day}`;
+                        };
 
-            const check_in = selectedDates[0];
-            const check_out = selectedDates[1];
+                        const check_in = selectedDates[0];
+                        const check_out = selectedDates[1];
 
-            // Set formatted date for UI
-            $('#checkInText').text(formatDate(check_in));
-            $('#checkOutText').text(formatDate(check_out));
+                        // Set formatted date for UI
+                        $('#checkInText').text(formatDate(check_in));
+                        $('#checkOutText').text(formatDate(check_out));
 
-            // Set ISO format date for input fields
-            $('#check_in').val(getISODate(check_in));
-            $('#check_out').val(getISODate(check_out));
-        
-    
+                        // Set ISO format date for input fields
+                        $('#check_in').val(getISODate(check_in));
+                        $('#check_out').val(getISODate(check_out));
 
-                    $.ajax({
-                        url: rvbs_ajax.ajax_url,
-                        type: 'POST',
-                        data: {
-                            action: 'rvbs_check_availability',
-                            nonce: rvbs_ajax.nonce,
-                            post_id: $('input[name="post_id"]').val(),
-                            check_in: check_in,
-                            check_out: check_out,
-                            filter: 'booknowpage'
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                $('#add-to-cart-btn').prop('disabled', false).text('Add to Cart');
-                                
-                                if (response.data.html == 'available') {
-                                    $('#dateError').text('Available for this date');
-                                    $('#dateError').css('color', 'green');
-                                    isAvailable = true;
+
+
+                        $.ajax({
+                            url: rvbs_ajax.ajax_url,
+                            type: 'POST',
+                            data: {
+                                action: 'rvbs_check_availability',
+                                nonce: rvbs_ajax.nonce,
+                                post_id: $('input[name="post_id"]').val(),
+                                check_in: check_in,
+                                check_out: check_out,
+                                filter: 'booknowpage'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    $('#add-to-cart-btn').prop('disabled', false).text('Add to Cart');
+
+                                    if (response.data.html == 'available') {
+                                        $('#dateError').text('Available for this date');
+                                        $('#dateError').css('color', 'green');
+                                        isAvailable = true;
+                                    } else {
+                                        $('#dateError').text('Not available for this date');
+                                        $('#dateError').css('color', 'red');
+                                        isAvailable = false;
+                                        $('#dateRange').focus();
+                                        window.fpInstance.open();
+                                    }
                                 } else {
+                                    $('#add-to-cart-btn').prop('disabled', true).text('Unavailable');
                                     $('#dateError').text('Not available for this date');
                                     $('#dateError').css('color', 'red');
                                     isAvailable = false;
                                     $('#dateRange').focus();
                                     window.fpInstance.open();
                                 }
-                            } else {
-                                $('#add-to-cart-btn').prop('disabled', true).text('Unavailable');
-                                $('#dateError').text('Not available for this date');
+                            },
+                            error: function() {
+                                $('#dateError').text('Error checking availability');
                                 $('#dateError').css('color', 'red');
                                 isAvailable = false;
                                 $('#dateRange').focus();
                                 window.fpInstance.open();
                             }
-                        },
-                        error: function() {
-                            $('#dateError').text('Error checking availability');
-                            $('#dateError').css('color', 'red');
-                            isAvailable = false;
-                            $('#dateRange').focus();
-                            window.fpInstance.open();
-                        }
-                    });
-                }
-            },
-            onClose: function(selectedDates) {
-                // ... (rest of your onClose function remains the same)
-            },
-            appendTo: document.querySelector('.calendar-container')
-        });
-
-        $('#dateDisplay').on('click', function() {
-            window.openCalendar();
-        });
-
-        // Handle form submission
-        $('#booking-form').on('submit', function(e) {
-            e.preventDefault();
-
-            // // Check availability status
-            // if (!isAvailable) {
-            //     $('#dateError').text('Please select available dates');
-            //     $('#dateError').css('color', 'red');
-            //     $('#dateRange').focus();
-            //     window.fpInstance.open();
-            //     return;
-            // }
-
-            const post_id = $('input[name="post_id"]').val();
-            const room_title = $('input[name="room_title"]').val();
-            const check_in = $('#check_in').val();
-            const check_out = $('#check_out').val();
-            const adults = $('#adults').val();
-            const children = $('#children').val();
-            const equipment_type = $('#equipment_type').val();
-            const length_ft = $('#length_ft').val();
-            const slide_outs = $('#slide_outs').val();
-            const site_location = $('#site_location').val();
-
-            // Validation with focus on fields
-            if (!check_in || !check_out) {
-                $('#dateError').text('Please select check-in and check-out dates');
-                $('#dateError').css('color', 'red');
-                $('#dateRange').focus();
-                window.fpInstance.open();
-                return;
-            }
-
-            if (!equipment_type) {
-                // Assuming there's an error element near equipment_type, or use a generic one
-                $('#equipmentError').text('Please select an equipment type'); // Add this element if not present
-                $('#equipment_type').focus();
-                return;
-            }
-
-            if (!length_ft) {
-                $('#lengthError').text('Please enter the equipment length'); // Add this element if not present
-                $('#length_ft').focus();
-                return;
-            }
-
-            if (!slide_outs) {
-                $('#slideOutsError').text('Please select the number of slide-outs'); // Add this element if not present
-                $('#slide_outs').focus();
-                return;
-            }
-
-            if (!site_location) {
-                $('#siteLocationError').text('Please enter the site location'); // Add this element if not present
-                $('#site_location').focus();
-                return;
-            }
-
-            $.ajax({
-                url: rvbs_ajax.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'rvbs_book_lot',
-                    nonce: rvbs_ajax.nonce,
-                    lot_id: post_id,
-                    post_id: post_id,
-                    room_title: room_title,
-                    check_in: check_in,
-                    check_out: check_out,
-                    adults: adults,
-                    children: children,
-                    equipment_type: equipment_type,
-                    length_ft: length_ft,
-                    slide_outs: slide_outs,
-                    site_location: site_location
-                },
-                beforeSend: function() {
-                    $('#booking-form button[type="submit"]').text('Processing...').prop('disabled', true);
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Success message (you might want to replace this with a UI update)
-                        $('#formMessage').text('Booking added to cart successfully! Room: ' + room_title); // Add this element if not present
-                        $('#formMessage').css('color', 'green');
-                    } else {
-                        $('#formMessage').text('Booking failed: ' + response.data); // Add this element if not present
-                        $('#formMessage').css('color', 'red');
-                        // Focus on the first relevant field based on the error (if specific)
-                        $('#dateRange').focus(); // Default focus, adjust based on error type if needed
+                        });
                     }
                 },
-                error: function() {
-                    $('#formMessage').text('An error occurred while booking'); // Add this element if not present
-                    $('#formMessage').css('color', 'red');
-                    $('#dateRange').focus(); // Default focus on error
+                onClose: function(selectedDates) {
+                    // ... (rest of your onClose function remains the same)
                 },
-                complete: function() {
-                    $('#booking-form button[type="submit"]').text('Add to Cart').prop('disabled', false);
+                appendTo: document.querySelector('.calendar-container')
+            });
+
+            $('#dateDisplay').on('click', function() {
+                window.openCalendar();
+            });
+
+            // Handle form submission
+            $('#booking-form').on('submit', function(e) {
+                e.preventDefault();
+
+                // // Check availability status
+                // if (!isAvailable) {
+                //     $('#dateError').text('Please select available dates');
+                //     $('#dateError').css('color', 'red');
+                //     $('#dateRange').focus();
+                //     window.fpInstance.open();
+                //     return;
+                // }
+
+                const post_id = $('input[name="post_id"]').val();
+                const room_title = $('input[name="room_title"]').val();
+                const check_in = $('#check_in').val();
+                const check_out = $('#check_out').val();
+                const adults = $('#adults').val();
+                const children = $('#children').val();
+                const equipment_type = $('#equipment_type').val();
+                const length_ft = $('#length_ft').val();
+                const slide_outs = $('#slide_outs').val();
+                const site_location = $('#site_location').val();
+
+                // Validation with focus on fields
+                if (!check_in || !check_out) {
+                    $('#dateError').text('Please select check-in and check-out dates');
+                    $('#dateError').css('color', 'red');
+                    $('#dateRange').focus();
+                    window.fpInstance.open();
+                    return;
                 }
+
+                if (!equipment_type) {
+                    // Assuming there's an error element near equipment_type, or use a generic one
+                    $('#equipmentError').text('Please select an equipment type'); // Add this element if not present
+                    $('#equipment_type').focus();
+                    return;
+                }
+
+                if (!length_ft) {
+                    $('#lengthError').text('Please enter the equipment length'); // Add this element if not present
+                    $('#length_ft').focus();
+                    return;
+                }
+
+                if (!slide_outs) {
+                    $('#slideOutsError').text('Please select the number of slide-outs'); // Add this element if not present
+                    $('#slide_outs').focus();
+                    return;
+                }
+
+                if (!site_location) {
+                    $('#siteLocationError').text('Please enter the site location'); // Add this element if not present
+                    $('#site_location').focus();
+                    return;
+                }
+
+                $.ajax({
+                    url: rvbs_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'rvbs_book_lot',
+                        nonce: rvbs_ajax.nonce,
+                        lot_id: post_id,
+                        post_id: post_id,
+                        room_title: room_title,
+                        check_in: check_in,
+                        check_out: check_out,
+                        adults: adults,
+                        children: children,
+                        equipment_type: equipment_type,
+                        length_ft: length_ft,
+                        slide_outs: slide_outs,
+                        site_location: site_location
+                    },
+                    beforeSend: function() {
+                        $('#booking-form button[type="submit"]').text('Processing...').prop('disabled', true);
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Success message (you might want to replace this with a UI update)
+                            $('#formMessage').text('Booking added to cart successfully! Room: ' + room_title); // Add this element if not present
+                            $('#formMessage').css('color', 'green');
+                        } else {
+                            $('#formMessage').text('Booking failed: ' + response.data); // Add this element if not present
+                            $('#formMessage').css('color', 'red');
+                            // Focus on the first relevant field based on the error (if specific)
+                            $('#dateRange').focus(); // Default focus, adjust based on error type if needed
+                        }
+                    },
+                    error: function() {
+                        $('#formMessage').text('An error occurred while booking'); // Add this element if not present
+                        $('#formMessage').css('color', 'red');
+                        $('#dateRange').focus(); // Default focus on error
+                    },
+                    complete: function() {
+                        $('#booking-form button[type="submit"]').text('Add to Cart').prop('disabled', false);
+                    }
+                });
+            });
+
+            // Handle guests selection
+            $('#guests').on('change', function() {
+                const value = $(this).val();
+                $('#adults').val(value);
+                $('#children').val(0);
             });
         });
-
-        // Handle guests selection
-        $('#guests').on('change', function() {
-            const value = $(this).val();
-            $('#adults').val(value);
-            $('#children').val(0);
-        });
-    });
     </script>
 
     <?php
