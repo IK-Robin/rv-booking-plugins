@@ -3,6 +3,17 @@
 Template Name: Book Now
 */
 
+// Check if required URL parameters are present and valid
+$post_id = isset($_GET['campsite']) ? intval($_GET['campsite']) : 0;
+$check_in = isset($_GET['check_in']) ? sanitize_text_field($_GET['check_in']) : '';
+$check_out = isset($_GET['check_out']) ? sanitize_text_field($_GET['check_out']) : '';
+
+// If any required parameter is missing or invalid, redirect to Search RV page
+if (!$post_id || !$check_in || !$check_out) {
+    wp_redirect(home_url('/search-rv/'));
+    exit;
+}
+
 // Check if the theme is block-based (Full Site Editing)
 $is_fse_theme = wp_is_block_theme();
 ?>
@@ -33,10 +44,6 @@ $is_fse_theme = wp_is_block_theme();
         echo do_blocks('<!-- wp:template-part {"slug":"header"} /-->'); // Block Theme Header
     }
 
-    // Get the post ID and query parameters from the URL
-    $post_id = isset($_GET['campsite']) ? intval($_GET['campsite']) : 0;
-    $check_in = isset($_GET['check_in']) ? sanitize_text_field($_GET['check_in']) : '';
-    $check_out = isset($_GET['check_out']) ? sanitize_text_field($_GET['check_out']) : '';
     $adults = isset($_GET['adults']) ? intval($_GET['adults']) : 1;
     $children = isset($_GET['children']) ? intval($_GET['children']) : 0;
 
@@ -176,6 +183,8 @@ $is_fse_theme = wp_is_block_theme();
                         <!-- Step 1: Trip Details -->
                         <div class="mb-4">
                             <h3 class="h6 text-muted">1. Trip Details</h3>
+                            <!-- add the post of the campsite -->
+                            <input type="hidden" name="campsite" value="<?php echo $post_id; ?>">
                             <div class="mb-1 calendar-container">
                                 <label class="form-label">Dates</label>
                                 <div id="dateDisplay" class="date-display">
@@ -194,7 +203,7 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Guests</label>
                                 <select class="form-select" id="guests" name="guests">
                                     <option value="<?php echo $adults; ?>" selected><?php echo $adults; ?> Adults<?php echo $children ? ', ' . $children . ' Children' : ''; ?></option>
-                                    <option value="1">1 Adult</option>
+                                    <option default value="1">1 Adult</option>
                                     <option value="2">2 Adults</option>
                                     <option value="3">3 Adults</option>
                                     <option value="4">4 Adults</option>
@@ -211,7 +220,7 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Equipment Type</label>
                                 <select class="form-select" id="equipment_type" name="equipment_type">
                                     <option value="">Select Equipment Type</option>
-                                    <option value="rv">RV</option>
+                                    <option default value="rv">RV</option>
                                     <option value="tent">Tent</option>
                                     <option value="trailer">Trailer</option>
                                 </select>
@@ -224,7 +233,7 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Slide-Outs</label>
                                 <select class="form-select" id="slide_outs" name="slide_outs">
                                     <option value="">Select Slide-Outs</option>
-                                    <option value="0">0 Slide-Outs</option>
+                                    <option default value="0">0 Slide-Outs</option>
                                     <option value="1">1 Slide-Out</option>
                                     <option value="2">2 Slide-Outs</option>
                                     <option value="3">3 Slide-Outs</option>
@@ -282,12 +291,7 @@ $is_fse_theme = wp_is_block_theme();
     </div>
 
     <!-- Bootstrap CSS and Icons -->
-
-
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
-
-<!-- jQuery and Bootstrap JS (already included in WordPress) -->
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script> -->
 
     <style>
@@ -332,7 +336,8 @@ $is_fse_theme = wp_is_block_theme();
             transform: translateX(-50%) !important;
         }
     </style>
-<script>
+
+    <script>
     window.openCalendar = function() {
         if (window.fpInstance && typeof window.fpInstance.open === 'function') {
             window.fpInstance.open();
@@ -346,24 +351,39 @@ $is_fse_theme = wp_is_block_theme();
 
         // Initialize Flatpickr once
         window.fpInstance = flatpickr("#dateRange", {
-            mode: "range",
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            defaultDate: [<?php echo $check_in ? "'$check_in'" : 'null'; ?>, <?php echo $check_out ? "'$check_out'" : 'null'; ?>],
-            onChange: function(selectedDates) {
-                if (selectedDates.length === 2) {
-                    const getISODate = date => {
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const day = String(date.getDate()).padStart(2, '0');
-                        return `${year}-${month}-${day}`;
-                    };
+    mode: "range",
+    dateFormat: "Y-m-d",
+    minDate: "today",
+    defaultDate: [<?php echo $check_in ? "'$check_in'" : 'null'; ?>, <?php echo $check_out ? "'$check_out'" : 'null'; ?>],
+    onChange: function(selectedDates) {
+        if (selectedDates.length === 2) {
+            const formatDate = date => {
+                return date.toLocaleDateString('en-US', {
+                    weekday: 'short', // 'D' => 'Mon', 'Tue', etc.
+                    month: 'short',   // 'M' => 'Jan', 'Feb', etc.
+                    day: '2-digit'    // 'd' => '02', '15', etc.
+                });
+            };
 
-                    const check_in = getISODate(selectedDates[0]);
-                    const check_out = getISODate(selectedDates[1]);
+            const getISODate = date => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
 
-                    $('#check_in').val(check_in);
-                    $('#check_out').val(check_out);
+            const check_in = selectedDates[0];
+            const check_out = selectedDates[1];
+
+            // Set formatted date for UI
+            $('#checkInText').text(formatDate(check_in));
+            $('#checkOutText').text(formatDate(check_out));
+
+            // Set ISO format date for input fields
+            $('#check_in').val(getISODate(check_in));
+            $('#check_out').val(getISODate(check_out));
+        
+    
 
                     $.ajax({
                         url: rvbs_ajax.ajax_url,
@@ -424,14 +444,14 @@ $is_fse_theme = wp_is_block_theme();
         $('#booking-form').on('submit', function(e) {
             e.preventDefault();
 
-            // Check availability status
-            if (!isAvailable) {
-                $('#dateError').text('Please select available dates');
-                $('#dateError').css('color', 'red');
-                $('#dateRange').focus();
-                window.fpInstance.open();
-                return;
-            }
+            // // Check availability status
+            // if (!isAvailable) {
+            //     $('#dateError').text('Please select available dates');
+            //     $('#dateError').css('color', 'red');
+            //     $('#dateRange').focus();
+            //     window.fpInstance.open();
+            //     return;
+            // }
 
             const post_id = $('input[name="post_id"]').val();
             const room_title = $('input[name="room_title"]').val();
@@ -529,8 +549,7 @@ $is_fse_theme = wp_is_block_theme();
             $('#children').val(0);
         });
     });
-</script>
-
+    </script>
 
     <?php
     // Load the correct footer
