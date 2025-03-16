@@ -21,7 +21,6 @@ function create_session_array() {
 add_action('init', 'create_session_array', 1);
 
 
-
 function handle_add_to_cart() {
     // Verify AJAX request & nonce
     if (!check_ajax_referer('rvbs_add_to_cart_nonce', '_ajax_nonce', false)) {
@@ -29,53 +28,59 @@ function handle_add_to_cart() {
         return;
     }
 
-    if (!isset($_POST['product_id']) || !isset($_POST['quantity'])) {
-        wp_send_json_error(['message' => 'Missing product data.']);
-        return;
+    session_start(); // Start session
+
+    // Collect RV booking details
+    $required_fields = ['campsite', 'check_in', 'check_out', 'guests', 'adults', 'children', 'site_location', 'post_id', 'room_title'];
+
+    foreach ($required_fields as $field) {
+        if (!isset($_POST[$field])) {
+            wp_send_json_error(['message' => 'Missing required fields.']);
+            return;
+        }
     }
 
-    session_start(); // Ensure session is started
+    // Sanitize input data
+    $rv_booking = [
+        'campsite'       => intval($_POST['campsite']),
+        'check_in'       => sanitize_text_field($_POST['check_in']),
+        'check_out'      => sanitize_text_field($_POST['check_out']),
+        'guests'         => intval($_POST['guests']),
+        'adults'         => intval($_POST['adults']),
+        'children'       => intval($_POST['children']),
+        'equipment_type' => sanitize_text_field($_POST['equipment_type']),
+        'length_ft'      => intval($_POST['length_ft']),
+        'slide_outs'     => intval($_POST['slide_outs']),
+        'site_location'  => sanitize_text_field($_POST['site_location']),
+        'post_id'        => intval($_POST['post_id']),
+        'room_title'     => sanitize_text_field($_POST['room_title']),
+    ];
 
-    var_dump($_POST);
-    // $product_id = intval($_POST['product_id']);
-    // $quantity = intval($_POST['quantity']);
+    // Initialize cart session if not set
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
+    }
+
+    // Add RV booking data to cart (using post_id as the unique identifier)
+    $_SESSION['cart'][$rv_booking['post_id']] = $rv_booking;
+
+    // Update cart count
+    $_SESSION['cart_total_items'] = count($_SESSION['cart']);
+
+    // ✅ Debugging: Log session data (Remove in production)
+    error_log(print_r($_SESSION, true));
+
+    // ✅ Send JSON response with updated cart data
     wp_send_json_success([
-        'cart_count' => 'hello', // Total quantity
-        // 'unique_count' => $unique_count, // Unique products
-        // 'cart' => $_SESSION['cart'],
+        'cart_count' => $_SESSION['cart_total_items'],
+        'cart'       => $_SESSION['cart'],
     ]);
-    // if ($product_id > 0 && $quantity > 0) {
-    //     if (!isset($_SESSION['cart'])) {
-    //         $_SESSION['cart'] = [];
-    //     }
-
-    //     // // Check if it's a new unique product
-    //     // $is_new_product = !isset($_SESSION['cart'][$product_id]);
-
-    //     // // Add to cart session
-    //     // if ($is_new_product) {
-    //     //     $_SESSION['cart'][$product_id] = $quantity;
-    //     // } else {
-    //     //     $_SESSION['cart'][$product_id] += $quantity;
-    //     // }
-
-    //     // // Update total items and unique count
-    //     // $_SESSION['cart_total_items'] = array_sum($_SESSION['cart']);
-    //     // $unique_count = count($_SESSION['cart']);
-
-    //     // // 🔍 Debugging: Log session data
-    //     // error_log(print_r($_SESSION, true));
-
-    //     // ✅ Send JSON response with updated cart count & unique count
-      
-    // } else {
-    //     wp_send_json_error(['message' => 'Invalid product ID or quantity.']);
-    // }
 }
 
-
+// Register AJAX actions
 add_action('wp_ajax_add_to_cart', 'handle_add_to_cart');
 add_action('wp_ajax_nopriv_add_to_cart', 'handle_add_to_cart');
+
 
 
 
@@ -87,9 +92,6 @@ function debug_session_cart() {
     //add value to the session cart 
   
         
-
-            $_SESSION['cart']['id'] = '434';
-            $_SESSION['cart']['i0o'] = '434';
     
     if (isset($_SESSION['cart'])) {
         echo '<pre>';
