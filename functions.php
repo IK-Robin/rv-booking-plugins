@@ -371,6 +371,9 @@ function rvbs_check_availability()
     $check_in = sanitize_text_field($_POST['check_in']);
     $check_out = sanitize_text_field($_POST['check_out']);
 
+    $filter = sanitize_text_field($_POST['filter']);
+  
+
     // Query to find available lots
     $query = $wpdb->prepare(
         "
@@ -399,19 +402,14 @@ function rvbs_check_availability()
 
     $available_lots = $wpdb->get_results($query);
 
-    if ($available_lots) {
-        $output = '<h3>Available Lots</h3>';
-        foreach ($available_lots as $lot) {
-            $post_title = get_the_title($lot->post_id);
-            $output .= '<div class="lot-item">';
-            $output .= '<h4>' . esc_html($post_title) . '</h4>';
-            $output .= '<p>Lot ID: ' . $lot->id . '</p>';
-            $output .= '<button class="book-btn" data-lot-id="' . $lot->id . '" data-post-id="' . $lot->post_id . '">Book Now</button>';
-            $output .= '</div>';
-        }
-    } else {
-        $output = '<p>No lots available for these dates.</p>';
+    if ($filter =='booknowpage' && $available_lots){
+        $output = 'available';
+    }else{
+      $output = 'notavailable' ;
+     
     }
+
+  
 
     wp_send_json_success(array('html' => $output));
 }
