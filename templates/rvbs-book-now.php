@@ -287,9 +287,9 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Equipment Type</label>
                                 <select class="form-select" id="equipment_type" name="equipment_type">
                                     <option value="">Select Equipment Type</option>
-                                    <option value="rv" <?php echo ($equipment_type == 'rv') ? 'selected' : ''; ?>>RV</option>
-                                    <option value="tent" <?php echo ($equipment_type == 'tent') ? 'selected' : ''; ?>>Tent</option>
-                                    <option value="trailer" <?php echo ($equipment_type == 'trailer') ? 'selected' : ''; ?>>Trailer</option>
+                                    <option value="rv" >RV</option>
+                                    <option value="tent" >Tent</option>
+                                    <option value="trailer" >Trailer</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -300,10 +300,10 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Slide-Outs</label>
                                 <select class="form-select" id="slide_outs" name="slide_outs">
                                     <option value="">Select Slide-Outs</option>
-                                    <option value="0" <?php echo ($slide_outs == '0') ? 'selected' : ''; ?>>0 Slide-Outs</option>
-                                    <option value="1" <?php echo ($slide_outs == '1') ? 'selected' : ''; ?>>1 Slide-Out</option>
-                                    <option value="2" <?php echo ($slide_outs == '2') ? 'selected' : ''; ?>>2 Slide-Outs</option>
-                                    <option value="3" <?php echo ($slide_outs == '3') ? 'selected' : ''; ?>>3 Slide-Outs</option>
+                                    <option value="0" > Slide-Outs</option>
+                                    <option value="1" >1 Slide-Out</option>
+                                    <option value="2" >2 Slide-Outs</option>
+                                    <option value="3" >3 Slide-Outs</option>
                                 </select>
                             </div>
                         </div>
@@ -506,108 +506,6 @@ $is_fse_theme = wp_is_block_theme();
 
             $('#dateDisplay').on('click', function() {
                 window.openCalendar();
-            });
-
-            // Handle form submission
-            $('#booking-form').on('submit', function(e) {
-                e.preventDefault();
-
-                // // Check availability status
-                // if (!isAvailable) {
-                //     $('#dateError').text('Please select available dates');
-                //     $('#dateError').css('color', 'red');
-                //     $('#dateRange').focus();
-                //     window.fpInstance.open();
-                //     return;
-                // }
-
-                const post_id = $('input[name="post_id"]').val();
-                const room_title = $('input[name="room_title"]').val();
-                const check_in = $('#check_in').val();
-                const check_out = $('#check_out').val();
-                const adults = $('#adults').val();
-                const children = $('#children').val();
-                const equipment_type = $('#equipment_type').val();
-                const length_ft = $('#length_ft').val();
-                const slide_outs = $('#slide_outs').val();
-                const site_location = $('#site_location').val();
-
-                // Validation with focus on fields
-                if (!check_in || !check_out) {
-                    $('#dateError').text('Please select check-in and check-out dates');
-                    $('#dateError').css('color', 'red');
-                    $('#dateRange').focus();
-                    window.fpInstance.open();
-                    return;
-                }
-
-                if (!equipment_type) {
-                    // Assuming there's an error element near equipment_type, or use a generic one
-                    $('#equipmentError').text('Please select an equipment type'); // Add this element if not present
-                    $('#equipment_type').focus();
-                    return;
-                }
-
-                if (!length_ft) {
-                    $('#lengthError').text('Please enter the equipment length'); // Add this element if not present
-                    $('#length_ft').focus();
-                    return;
-                }
-
-                if (!slide_outs) {
-                    $('#slideOutsError').text('Please select the number of slide-outs'); // Add this element if not present
-                    $('#slide_outs').focus();
-                    return;
-                }
-
-                if (!site_location) {
-                    $('#siteLocationError').text('Please enter the site location'); // Add this element if not present
-                    $('#site_location').focus();
-                    return;
-                }
-
-                $.ajax({
-                    url: rvbs_ajax.ajax_url,
-                    type: 'POST',
-                    data: {
-                        action: 'rvbs_book_lot',
-                        nonce: rvbs_ajax.nonce,
-                        lot_id: post_id,
-                        post_id: post_id,
-                        room_title: room_title,
-                        check_in: check_in,
-                        check_out: check_out,
-                        adults: adults,
-                        children: children,
-                        equipment_type: equipment_type,
-                        length_ft: length_ft,
-                        slide_outs: slide_outs,
-                        site_location: site_location
-                    },
-                    beforeSend: function() {
-                        $('#booking-form button[type="submit"]').text('Processing...').prop('disabled', true);
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Success message (you might want to replace this with a UI update)
-                            $('#formMessage').text('Booking added to cart successfully! Room: ' + room_title); // Add this element if not present
-                            $('#formMessage').css('color', 'green');
-                        } else {
-                            $('#formMessage').text('Booking failed: ' + response.data); // Add this element if not present
-                            $('#formMessage').css('color', 'red');
-                            // Focus on the first relevant field based on the error (if specific)
-                            $('#dateRange').focus(); // Default focus, adjust based on error type if needed
-                        }
-                    },
-                    error: function() {
-                        $('#formMessage').text('An error occurred while booking'); // Add this element if not present
-                        $('#formMessage').css('color', 'red');
-                        $('#dateRange').focus(); // Default focus on error
-                    },
-                    complete: function() {
-                        $('#booking-form button[type="submit"]').text('Add to Cart').prop('disabled', false);
-                    }
-                });
             });
 
             // Handle guests selection
