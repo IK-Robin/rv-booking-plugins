@@ -348,4 +348,20 @@ $('#booking-form').on('submit', function(e) {
             // });
 
 
-});
+
+
+
+            // this code block work in rvbs-custom-menu-item.php file  add the doller sign to the cart total
+
+            $('.block-cart .cart-total').each(function () {
+                var cartTotal = $(this);
+                if ($.trim(cartTotal.text()) !== "") {
+                    cartTotal.text("$" + cartTotal.text());
+                }
+            });
+            });
+
+
+
+
+
