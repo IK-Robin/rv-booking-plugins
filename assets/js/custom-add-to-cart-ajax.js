@@ -160,27 +160,27 @@ jQuery(document).ready(function ($) {
     // });
     
  // on load get the session data and update the cart count
-    $.ajax({
-        url: rvbs_add_to_cart.ajax_url,
-        type: 'POST',
-        data: {
-            action: 'rvbs_get_cart_count',
-            _ajax_nonce: rvbs_add_to_cart.nonce,
-        },
-        success: function (response) {
-            console.log("AJAX Response: ", response);
-            if (response.success) {
-                $('.cart-count').text(response.data.cart_count);
-                $('#uniq_product').text(response.data.unique_count);
-                $('#total_cart_count').text(response.data.unique_count);
-            } else {
-                console.log("Error: ", response.data);
-            }
-        },
-        error: function () {
-            console.log('AJAX request failed.'); 
-        },
-    });
+    // $.ajax({
+    //     url: rvbs_add_to_cart.ajax_url,
+    //     type: 'POST',
+    //     data: {
+    //         action: 'rvbs_get_cart_count',
+    //         _ajax_nonce: rvbs_add_to_cart.nonce,
+    //     },
+    //     success: function (response) {
+    //         console.log("AJAX Response: ", response);
+    //         if (response.success) {
+    //             $('.cart-count').text(response.data.cart_count);
+    //             $('#uniq_product').text(response.data.unique_count);
+    //             $('#total_cart_count').text(response.data.unique_count);
+    //         } else {
+    //             console.log("Error: ", response.data); 
+    //         }
+    //     },
+    //     error: function () {
+    //         console.log('AJAX request failed.'); 
+    //     },
+    // });
 
 
 
