@@ -414,6 +414,29 @@ $is_fse_theme = wp_is_block_theme();
             // Pass PHP variables to JS
             const nightlyRate = <?php echo json_encode($price); ?>;
             const campgroundFees = <?php echo json_encode($campground_fees); ?>;
+            const campsiteId = <?php echo json_encode($post_id); ?>;
+        const initialAdults = <?php echo json_encode($adults); ?>;
+        const initialChildren = <?php echo json_encode($children); ?>;
+
+            // update the url date picker with the selected date checkout and checkin
+           // Function to format date as YYYY-MM-DD
+        function getISODate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+          
+// Function to update URL
+function updateURL(check_in, check_out) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('check_in', getISODate(check_in));
+            url.searchParams.set('check_out', getISODate(check_out));
+            url.searchParams.set('campsite', campsiteId);
+            url.searchParams.set('adults', initialAdults);
+            url.searchParams.set('children', initialChildren);
+            window.history.pushState({}, document.title, url.toString());
+        }
 
             // Function to update price breakdown
             function updatePriceBreakdown(check_in, check_out) {
@@ -467,7 +490,8 @@ $is_fse_theme = wp_is_block_theme();
 
                         // Update price breakdown
                         updatePriceBreakdown(check_in, check_out);
-
+// Update URL
+updateURL(check_in, check_out);
                         // Availability check
                         $.ajax({
                             url: rvbs_ajax.ajax_url,
