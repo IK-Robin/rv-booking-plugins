@@ -97,11 +97,12 @@ function custom_add_loginout_cart_link_classic($items, $args) {
         $items[] = $loginout_item;
 
         // 2. Add Custom Cart Menu Item
-        
+        $cart_count = get_custom_cart_count();
+        $cart_total = get_custom_cart_total();
         $cart_url = home_url('/cart/'); // Replace with your cart page URL
 
         $cart_item = (object) array(
-            'title'            =>  ' <span class="cart-icon-wrap"><span class="cart-count">'  . '</span></span>',
+            'title'            => '$' . number_format($cart_total, 2) . ' <span class="cart-icon-wrap"><span class="cart-count">' . $cart_count . '</span></span>',
             'url'              => $cart_url,
             'menu_order'       => 9999,
             'ID'               => 'custom-cart-' . rand(1000, 9999),
@@ -158,16 +159,18 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
         );
 
         // Cart Link
-       
-   
-     
+        $cart_count = get_custom_cart_count();
+        $cart_total = get_custom_cart_total();
+        $cart_total = number_format($cart_total, 4, '.', '');
         $cart_url = esc_url(home_url('/cart/')); // Replace with your cart page URL
         $cart_html = sprintf(
             '<li class="wp-block-navigation-item custom-cart-link"><a href="%s">%s <span class="cart-icon-wrap"><span class="cart-count">%s</span></span></a></li>',
-            // Use the formatted $cart_total
-       
+            $cart_url,
+            '$2234' , // Use the formatted $cart_total
+            esc_html($cart_count)
         );
-       
+        var_dump($cart_total);
+
         // Append items BEFORE the closing </ul> tag to place at the end
         $block_content = preg_replace('/(<\/ul>)/', $loginout_html . $cart_html . '$1', $block_content, 1);
 
@@ -182,11 +185,24 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
 /**
  * Custom function to get cart count (modify as needed)
  */
-
+function get_custom_cart_count() {
+    if (!session_id()) {
+        session_start();
+    }
+    $cart_count = isset($_SESSION['cart']) && is_array($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
+    return $cart_count;
+}
 
 /**
  * Custom function to get cart total (modify as needed)
  */
+function get_custom_cart_total() {
+    // Custom logic to get the cart total (you may need to replace this logic)
+    $cart_total = 2009.00; // Default value for cart total
+
+    // Ensure it's a float and properly formatted
+    return number_format($cart_total, 4, '.', ''); // Format with 2 decimal places
+}
 
 
 /**
