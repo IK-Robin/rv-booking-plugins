@@ -159,32 +159,193 @@ jQuery(document).ready(function ($) {
    
     // });
     
-    
-
-    $('#booking-form').on('submit', function (e) {
-        e.preventDefault();
-    
-        console.log('Form Submitted');
-    
-        // Create FormData object from the form
-        var formdata = new FormData(this);
-    
-        // Append additional AJAX action and nonce to the FormData
-        formdata.append('action', 'add_to_cart');
-        formdata.append('_ajax_nonce', rvbs_add_to_cart.nonce);
-    
-        $.ajax({
-            type: 'POST',
-            url: rvbs_add_to_cart.ajax_url,
-            data: formdata,
-            processData: false, // Prevent jQuery from automatically processing data
-            contentType: false, // Prevent jQuery from setting content-type
-        }).done(function (response) {
-            console.log(response);
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            console.error('AJAX Error:', textStatus, errorThrown);
-        });
+ // on load get the session data and update the cart count
+    $.ajax({
+        url: rvbs_add_to_cart.ajax_url,
+        type: 'POST',
+        data: {
+            action: 'rvbs_get_cart_count',
+            _ajax_nonce: rvbs_add_to_cart.nonce,
+        },
+        success: function (response) {
+            console.log("AJAX Response: ", response);
+            if (response.success) {
+                $('.cart-count').text(response.data.cart_count);
+                $('#uniq_product').text(response.data.unique_count);
+                $('#total_cart_count').text(response.data.unique_count);
+            } else {
+                console.log("Error: ", response.data);
+            }
+        },
+        error: function () {
+            console.log('AJAX request failed.'); 
+        },
     });
-    
+
+
+
+// Form submission with validation
+$('#booking-form').on('submit', function(e) {
+    e.preventDefault();
+    console.log('hell')
+
+    // Remove previous error messages
+    $('.error-message').remove();
+
+    // Get form field values
+    const adults = $('#adultsInput').val().trim();
+    const equipment_type = $('#equipment_type').val().trim();
+    const length_ft = $('#length_ft').val().trim();
+    const slide_outs = $('#slide_outs').val().trim();
+    const site_location = $('#site_location').val().trim();
+
+    // Validation flag
+    let isValid = true;
+
+    // Function to show error and focus field
+    function showError(fieldId, message) {
+        $(`#${fieldId}`).after(`<p class="error-message" style="color: red; font-size: 0.9em;">${message}</p>`);
+        $(`#${fieldId}`).focus();
+        isValid = false;
+    }
+
+    // Validate fields
+    if (!adults || parseInt(adults) < 1) {
+        showError('guestDropdownBtn', 'Please select at least one adult');
+    }
+
+    if (!equipment_type) {
+        showError('equipment_type', 'Please select an equipment type');
+    }
+
+    if (!length_ft || parseInt(length_ft) <= 0) {
+        showError('length_ft', 'Please enter a valid equipment length');
+    }
+
+    if (!slide_outs && slide_outs !== '0') { // '0' is a valid option
+        showError('slide_outs', 'Please select the number of slide-outs');
+    }
+
+    if (!site_location) {
+        showError('site_location', 'Please enter the site location');
+    }
+
+    // Stop if validation fails
+    if (!isValid) {
+        return;
+    }
+
+    // Proceed with AJAX submission
+    const formData = new FormData(this);
+    formData.append('action', 'add_to_cart');
+    formData.append('_ajax_nonce', rvbs_add_to_cart.nonce);
+
+    $.ajax({
+        type: 'POST',
+        url: rvbs_add_to_cart.ajax_url,
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function() {
+            $('#booking-form button[type="submit"]').text('Processing...').prop('disabled', true);
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#booking-form').prepend('<p class="success-message" style="color: green;">Added to cart successfully!</p>');
+                setTimeout(() => $('.success-message').remove(), 3000);
+
+                // Update cart count
+                $('.cart-count').text(response.data.cart_count);
+            } else {
+                $('#booking-form').prepend(`<p class="error-message" style="color: red;">Error: ${response.data.message || 'Failed to add to cart'}</p>`);
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('AJAX Error:', textStatus, errorThrown);
+            $('#booking-form').prepend('<p class="error-message" style="color: red;">An error occurred. Please try again.</p>');
+        },
+        complete: function() {
+            $('#booking-form button[type="submit"]').text('Add to Cart').prop('disabled', false);
+        }
+    });
+});
+
+
+
+// send the form data to the server and then process the data and book the lot 
+
+            // // Handle form submission
+            // $('#booking-form').on('submit', function(e) {
+            //     e.preventDefault();
+
+            //     // // Check availability status
+            //     // if (!isAvailable) {
+            //     //     $('#dateError').text('Please select available dates');
+            //     //     $('#dateError').css('color', 'red');
+            //     //     $('#dateRange').focus();
+            //     //     window.fpInstance.open();
+            //     //     return;
+            //     // }
+
+            //     const post_id = $('input[name="post_id"]').val();
+            //     const room_title = $('input[name="room_title"]').val();
+            //     const check_in = $('#check_in').val();
+            //     const check_out = $('#check_out').val();
+            //     const adults = $('#adults').val();
+            //     const children = $('#children').val();
+            //     const equipment_type = $('#equipment_type').val();
+            //     const length_ft = $('#length_ft').val();
+            //     const slide_outs = $('#slide_outs').val();
+            //     const site_location = $('#site_location').val();
+
+            //     // Validation with focus on fields
+                
+                
+
+
+            //     $.ajax({
+            //         url: rvbs_ajax.ajax_url,
+            //         type: 'POST',
+            //         data: {
+            //             action: 'rvbs_book_lot',
+            //             nonce: rvbs_ajax.nonce,
+            //             lot_id: post_id,
+            //             post_id: post_id,
+            //             room_title: room_title,
+            //             check_in: check_in,
+            //             check_out: check_out,
+            //             adults: adults,
+            //             children: children,
+            //             equipment_type: equipment_type,
+            //             length_ft: length_ft,
+            //             slide_outs: slide_outs,
+            //             site_location: site_location
+            //         },
+            //         beforeSend: function() {
+            //             $('#booking-form button[type="submit"]').text('Processing...').prop('disabled', true);
+            //         },
+            //         success: function(response) {
+            //             if (response.success) {
+            //                 // Success message (you might want to replace this with a UI update)
+            //                 $('#formMessage').text('Booking added to cart successfully! Room: ' + room_title); // Add this element if not present
+            //                 $('#formMessage').css('color', 'green');
+            //             } else {
+            //                 $('#formMessage').text('Booking failed: ' + response.data); // Add this element if not present
+            //                 $('#formMessage').css('color', 'red');
+            //                 // Focus on the first relevant field based on the error (if specific)
+            //                 $('#dateRange').focus(); // Default focus, adjust based on error type if needed
+            //             }
+            //         },
+            //         error: function() {
+            //             $('#formMessage').text('An error occurred while booking'); // Add this element if not present
+            //             $('#formMessage').css('color', 'red');
+            //             $('#dateRange').focus(); // Default focus on error
+            //         },
+            //         complete: function() {
+            //             $('#booking-form button[type="submit"]').text('Add to Cart').prop('disabled', false);
+            //         }
+            //     });
+            // });
+
 
 });
