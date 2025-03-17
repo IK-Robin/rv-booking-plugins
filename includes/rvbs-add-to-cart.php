@@ -8,30 +8,23 @@ function start_custom_session() {
 }
 add_action('init', 'start_custom_session', 1);
 
-// Create a session array 
-function create_session_array() {
-    if (!session_id()) {
-        session_start();
-    }
-    if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = [];
-    }
-}
-add_action('init', 'create_session_array', 1);
-
+// Creat
 
 // get the session array and count the items in the cart
 
-function handle_rvbs_get_cart_count() {
+
+
+
+// Cart count function
+function handle_rvbs_get_cart_count_ajax() {
     if (!session_id()) {
         session_start();
     }
-    $cart_count = isset($_SESSION['cart']) ? count($_SESSION['cart']) : '';
-    return $cart_count;
+    $cart_count = isset($_SESSION['cart']) && is_array($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
+    wp_send_json_success(['cart_count' => $cart_count]);
 }
-
-add_action('wp_ajax_rvbs_get_cart_count', 'handle_rvbs_get_cart_count');
-add_action('wp_ajax_nopriv_rvbs_get_cart_count', 'handle_rvbs_get_cart_count');
+add_action('wp_ajax_rvbs_get_cart_count', 'handle_rvbs_get_cart_count_ajax');
+add_action('wp_ajax_nopriv_rvbs_get_cart_count', 'handle_rvbs_get_cart_count_ajax');
 
 
 
