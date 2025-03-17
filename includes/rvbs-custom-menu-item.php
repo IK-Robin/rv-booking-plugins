@@ -161,15 +161,27 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
         // Cart Link
         $cart_count = get_custom_cart_count();
         $cart_total = get_custom_cart_total();
-        $cart_total = number_format($cart_total, 4, '.', '');
+        $cart_total = number_format((float) $cart_total, 2, '.', '');
         $cart_url = esc_url(home_url('/cart/')); // Replace with your cart page URL
-        $cart_html = sprintf(
-            '<li class="wp-block-navigation-item custom-cart-link"><a href="%s">%s <span class="cart-icon-wrap"><span class="cart-count">%s</span></span></a></li>',
-            $cart_url,
-            '$2234' , // Use the formatted $cart_total
-            esc_html($cart_count)
-        );
-        var_dump($cart_total);
+
+        // Check if the theme is block-based
+        if (wp_is_block_theme()) {
+            // Block theme: Don't add $ sign in PHP, use JS instead
+            $cart_html = sprintf(
+                '<li class="wp-block-navigation-item custom-cart-link block-cart"><a href="%s"><span class="cart-total">%s</span> <span class="cart-icon-wrap"><span class="cart-count">%s</span></span></a></li>',
+                $cart_url,
+                esc_html($cart_total), // No $ sign in PHP
+                esc_html($cart_count)
+            );
+        } else {
+            // Classic theme: Add the $ sign directly in PHP
+            $cart_html = sprintf(
+                '<li class="wp-block-navigation-item custom-cart-link classic-cart"><a href="%s">$%s <span class="cart-icon-wrap"><span class="cart-count">%s</span></span></a></li>',
+                $cart_url,
+                esc_html($cart_total), // Add $ sign here
+                esc_html($cart_count)
+            );
+        }
 
         // Append items BEFORE the closing </ul> tag to place at the end
         $block_content = preg_replace('/(<\/ul>)/', $loginout_html . $cart_html . '$1', $block_content, 1);
@@ -179,6 +191,7 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
 
     return $block_content;
 }
+
 
 
 
@@ -193,16 +206,34 @@ function get_custom_cart_count() {
     return $cart_count;
 }
 
+
 /**
  * Custom function to get cart total (modify as needed)
  */
 function get_custom_cart_total() {
-    // Custom logic to get the cart total (you may need to replace this logic)
-    $cart_total = 2009.00; // Default value for cart total
+    if (!session_id()) {
+        session_start();
+    }
+    $cart_total = 0.0;
 
-    // Ensure it's a float and properly formatted
-    return number_format($cart_total, 4, '.', ''); // Format with 2 decimal places
+    if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+        foreach ($_SESSION['cart'] as $item) {
+            $post_id = $item['post_id'];
+            $price = floatval(get_post_meta($post_id, '_rv_lots_price', true)) ?: 20.00; // Default to 20 if not set
+            $nights = 1; // Default to 1 night; adjust if you have check_in/check_out logic
+            if (isset($item['check_in']) && isset($item['check_out'])) {
+                $check_in = new DateTime($item['check_in']);
+                $check_out = new DateTime($item['check_out']);
+                $nights = $check_in->diff($check_out)->days ?: 1;
+            }
+  $cart_total += $price * $nights;
+           
+        }
+    }
+
+    return floatval($cart_total); // Return as float, formatting will be handled where used
 }
+
 
 
 /**
