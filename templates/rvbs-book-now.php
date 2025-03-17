@@ -32,6 +32,8 @@ $is_fse_theme = wp_is_block_theme();
         echo '<style>' . $global_styles . '</style>';
     }
     ?>
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
 </head>
 
 <body <?php body_class(); ?>>
@@ -96,12 +98,11 @@ $is_fse_theme = wp_is_block_theme();
                     <!-- Thumbnails -->
                     <div class="d-flex gap-2">
                         <?php
-                        // Assuming you have additional images stored in a meta field (e.g., '_rv_lot_images')
                         $additional_images = get_post_meta($post_id, '_rv_lot_images', true);
                         $thumbnail_count = 0;
                         if ($additional_images && is_array($additional_images)) :
                             foreach ($additional_images as $image_id) :
-                                if ($thumbnail_count >= 3) break; // Limit to 3 thumbnails
+                                if ($thumbnail_count >= 3) break;
                                 $thumbnail_url = wp_get_attachment_image_url($image_id, 'thumbnail');
                                 if ($thumbnail_url) :
                         ?>
@@ -126,7 +127,6 @@ $is_fse_theme = wp_is_block_theme();
                         <?php
                         if ($amenities && !is_wp_error($amenities)) :
                             foreach ($amenities as $amenity) :
-                                // Map amenity names to icons (you'll need to add your own icons)
                                 $icon = '';
                                 switch (strtolower($amenity->name)) {
                                     case '30-amp':
@@ -183,7 +183,6 @@ $is_fse_theme = wp_is_block_theme();
                         <!-- Step 1: Trip Details -->
                         <div class="mb-4">
                             <h3 class="h6 text-muted">1. Trip Details</h3>
-                            <!-- add hidden input id  -->
                             <input type="hidden" name="campsite" value="<?php echo $post_id; ?>">
                             <div class="mb-1 calendar-container">
                                 <label class="form-label">Dates</label>
@@ -200,84 +199,83 @@ $is_fse_theme = wp_is_block_theme();
                                 </div>
                             </div>
                             <div class="mb-3 position-relative">
-    <label class="form-label">Guests</label>
-    <button id="guestDropdownBtn" type="button" class="form-select text-start">
-        <span id="guestSummary">2 Adults, 2 Children, 2 Pets</span>
-    </button>
-    <div id="guestDropdown" class="card shadow-sm p-3 position-absolute bg-white d-none" style="z-index: 1000;">
-        <h6>Number of Guests</h6>
-        <div id="adultsWrapper" class="d-flex justify-content-between align-items-center mb-2">
-            <span>Adults</span>
-            <div class="input-group input-group-sm">
-                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('adults', -1)">-</button>
-                <input id="adultsCount" type="text" class="form-control text-center" value="2" readonly>
-                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('adults', 1)">+</button>
-            </div>
-        </div>
-        <div id="childrenWrapper" class="d-flex justify-content-between align-items-center mb-2">
-            <span>Children</span>
-            <div class="input-group input-group-sm">
-                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('children', -1)">-</button>
-                <input id="childrenCount" type="text" class="form-control text-center" value="2" readonly>
-                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('children', 1)">+</button>
-            </div>
-        </div>
-        <div id="petsWrapper" class="d-flex justify-content-between align-items-center">
-            <span>Pets</span>
-            <div class="input-group input-group-sm">
-                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('pets', -1)">-</button>
-                <input id="petsCount" type="text" class="form-control text-center" value="2" readonly>
-                <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('pets', 1)">+</button>
-            </div>
-        </div>
-    </div>
-    <input type="hidden" id="adultsInput" name="adults" value="2">
-    <input type="hidden" id="childrenInput" name="children" value="2">
-    <input type="hidden" id="petsInput" name="pets" value="2">
-</div>
+                                <label class="form-label">Guests</label>
+                                <button id="guestDropdownBtn" type="button" class="form-select text-start">
+                                    <span id="guestSummary">2 Adults, 2 Children, 2 Pets</span>
+                                </button>
+                                <div id="guestDropdown" class="card shadow-sm p-3 position-absolute bg-white d-none" style="z-index: 1000;">
+                                    <h6>Number of Guests</h6>
+                                    <div id="adultsWrapper" class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Adults</span>
+                                        <div class="input-group input-group-sm">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('adults', -1)">-</button>
+                                            <input id="adultsCount" type="text" class="form-control text-center" value="2" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('adults', 1)">+</button>
+                                        </div>
+                                    </div>
+                                    <div id="childrenWrapper" class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Children</span>
+                                        <div class="input-group input-group-sm">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('children', -1)">-</button>
+                                            <input id="childrenCount" type="text" class="form-control text-center" value="2" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('children', 1)">+</button>
+                                        </div>
+                                    </div>
+                                    <div id="petsWrapper" class="d-flex justify-content-between align-items-center">
+                                        <span>Pets</span>
+                                        <div class="input-group input-group-sm">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('pets', -1)">-</button>
+                                            <input id="petsCount" type="text" class="form-control text-center" value="2" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="updateGuests('pets', 1)">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="adultsInput" name="adults" value="2">
+                                <input type="hidden" id="childrenInput" name="children" value="2">
+                                <input type="hidden" id="petsInput" name="pets" value="2">
+                            </div>
 
-<script>
-    document.getElementById("guestDropdownBtn").addEventListener("click", function(event) {
-        event.stopPropagation();
-        document.getElementById("guestDropdown").classList.toggle("d-none");
-    });
+                            <script>
+                                document.getElementById("guestDropdownBtn").addEventListener("click", function(event) {
+                                    event.stopPropagation();
+                                    document.getElementById("guestDropdown").classList.toggle("d-none");
+                                });
 
-    document.addEventListener("click", function(event) {
-        const dropdown = document.getElementById("guestDropdown");
-        if (!dropdown.classList.contains("d-none") && !dropdown.contains(event.target) && event.target.id !== "guestDropdownBtn") {
-            dropdown.classList.add("d-none");
-        }
-    });
+                                document.addEventListener("click", function(event) {
+                                    const dropdown = document.getElementById("guestDropdown");
+                                    if (!dropdown.classList.contains("d-none") && !dropdown.contains(event.target) && event.target.id !== "guestDropdownBtn") {
+                                        dropdown.classList.add("d-none");
+                                    }
+                                });
 
-    function updateGuests(type, change) {
-        const input = document.getElementById(`${type}Count`);
-        const hiddenInput = document.getElementById(`${type}Input`);
-        const wrapper = document.getElementById(`${type}Wrapper`);
-        
-        let newValue = parseInt(input.value) + change;
-        if (newValue < 0) newValue = 0;
-        
-        input.value = newValue;
-        hiddenInput.value = newValue;
-        
-        wrapper.style.display = newValue > 0 ? 'flex' : 'none';
-        updateGuestSummary();
-    }
+                                function updateGuests(type, change) {
+                                    const input = document.getElementById(`${type}Count`);
+                                    const hiddenInput = document.getElementById(`${type}Input`);
+                                    const wrapper = document.getElementById(`${type}Wrapper`);
+                                    
+                                    let newValue = parseInt(input.value) + change;
+                                    if (newValue < 0) newValue = 0;
+                                    
+                                    input.value = newValue;
+                                    hiddenInput.value = newValue;
+                                    
+                                    wrapper.style.display = newValue > 0 ? 'flex' : 'none';
+                                    updateGuestSummary();
+                                }
 
-    function updateGuestSummary() {
-        const adults = document.getElementById("adultsCount").value;
-        const children = document.getElementById("childrenCount").value;
-        const pets = document.getElementById("petsCount").value;
-        
-        let summary = [];
-        if (adults > 0) summary.push(`${adults} Adults`);
-        if (children > 0) summary.push(`${children} Children`);
-        if (pets > 0) summary.push(`${pets} Pets`);
-        
-        document.getElementById("guestSummary").innerText = summary.length ? summary.join(", ") : "Select Guests";
-    }
-</script>
-
+                                function updateGuestSummary() {
+                                    const adults = document.getElementById("adultsCount").value;
+                                    const children = document.getElementById("childrenCount").value;
+                                    const pets = document.getElementById("petsCount").value;
+                                    
+                                    let summary = [];
+                                    if (adults > 0) summary.push(`${adults} Adults`);
+                                    if (children > 0) summary.push(`${children} Children`);
+                                    if (pets > 0) summary.push(`${pets} Pets`);
+                                    
+                                    document.getElementById("guestSummary").innerText = summary.length ? summary.join(", ") : "Select Guests";
+                                }
+                            </script>
                         </div>
 
                         <!-- Step 2: Equipment Details -->
@@ -287,9 +285,9 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Equipment Type</label>
                                 <select class="form-select" id="equipment_type" name="equipment_type">
                                     <option value="">Select Equipment Type</option>
-                                    <option value="rv" >RV</option>
-                                    <option value="tent" >Tent</option>
-                                    <option value="trailer" >Trailer</option>
+                                    <option value="rv">RV</option>
+                                    <option value="tent">Tent</option>
+                                    <option value="trailer">Trailer</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -300,10 +298,10 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Slide-Outs</label>
                                 <select class="form-select" id="slide_outs" name="slide_outs">
                                     <option value="">Select Slide-Outs</option>
-                                    <option value="0" > Slide-Outs</option>
-                                    <option value="1" >1 Slide-Out</option>
-                                    <option value="2" >2 Slide-Outs</option>
-                                    <option value="3" >3 Slide-Outs</option>
+                                    <option value="0">Slide-Outs</option>
+                                    <option value="1">1 Slide-Out</option>
+                                    <option value="2">2 Slide-Outs</option>
+                                    <option value="3">3 Slide-Outs</option>
                                 </select>
                             </div>
                         </div>
@@ -327,8 +325,8 @@ $is_fse_theme = wp_is_block_theme();
                             $total = $subtotal + $campground_fees;
                             ?>
                             <div class="d-flex justify-content-between">
-                                <span>$<?php echo number_format($nightly_rate, 2); ?> x <?php echo ($nights ?: 1); ?> Nights</span>
-                                <span>$<?php echo number_format($subtotal, 2); ?></span>
+                                <span class="night-price">$<?php echo number_format($nightly_rate, 2); ?> x <?php echo ($nights ?: 1); ?> Nights</span>
+                                <span class="night-subtotal">$<?php echo number_format($subtotal, 2); ?></span>
                             </div>
                             <?php if ($weekly_rate > 0) : ?>
                                 <div class="d-flex justify-content-between text-muted">
@@ -352,15 +350,10 @@ $is_fse_theme = wp_is_block_theme();
                         <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
                         <input type="hidden" name="room_title" value="<?php echo esc_attr($lot->post_title ?: ''); ?>">
                     </form>
-
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap CSS and Icons -->
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script> -->
 
     <style>
         .calendar-container {
@@ -405,6 +398,7 @@ $is_fse_theme = wp_is_block_theme();
         }
     </style>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <script>
         window.openCalendar = function() {
             if (window.fpInstance && typeof window.fpInstance.open === 'function') {
@@ -417,7 +411,30 @@ $is_fse_theme = wp_is_block_theme();
         jQuery(document).ready(function($) {
             let isAvailable = false;
 
-            // Initialize Flatpickr once
+            // Pass PHP variables to JS
+            const nightlyRate = <?php echo json_encode($price); ?>;
+            const campgroundFees = <?php echo json_encode($campground_fees); ?>;
+
+            // Function to update price breakdown
+            function updatePriceBreakdown(check_in, check_out) {
+                const date1 = new Date(check_in);
+                const date2 = new Date(check_out);
+                const nights = Math.ceil((date2 - date1) / (1000 * 60 * 60 * 24)) || 1;
+                
+                const subtotal = nightlyRate * nights;
+                const total = subtotal + campgroundFees;
+
+                $('.d-flex.justify-content-between').eq(0).html(
+                    `<span>$${nightlyRate.toFixed(2)} x ${nights} Nights</span><span>$${subtotal.toFixed(2)}</span>`
+                );
+                $('.d-flex.justify-content-between.fw-bold').html(
+                    `<span>Site Total</span><span>$${total.toFixed(2)}</span>`
+                );
+                $('.night-price').text(`$${nightlyRate.toFixed(2)} x ${nights} Nights`);
+                $('.night-subtotal').text(`$${subtotal.toFixed(2)}`);
+            }
+
+            // Initialize Flatpickr
             window.fpInstance = flatpickr("#dateRange", {
                 mode: "range",
                 dateFormat: "Y-m-d",
@@ -427,9 +444,9 @@ $is_fse_theme = wp_is_block_theme();
                     if (selectedDates.length === 2) {
                         const formatDate = date => {
                             return date.toLocaleDateString('en-US', {
-                                weekday: 'short', // 'D' => 'Mon', 'Tue', etc.
-                                month: 'short', // 'M' => 'Jan', 'Feb', etc.
-                                day: '2-digit' // 'd' => '02', '15', etc.
+                                weekday: 'short',
+                                month: 'short',
+                                day: '2-digit'
                             });
                         };
 
@@ -443,16 +460,15 @@ $is_fse_theme = wp_is_block_theme();
                         const check_in = selectedDates[0];
                         const check_out = selectedDates[1];
 
-                        // Set formatted date for UI
                         $('#checkInText').text(formatDate(check_in));
                         $('#checkOutText').text(formatDate(check_out));
-
-                        // Set ISO format date for input fields
                         $('#check_in').val(getISODate(check_in));
                         $('#check_out').val(getISODate(check_out));
 
+                        // Update price breakdown
+                        updatePriceBreakdown(check_in, check_out);
 
-
+                        // Availability check
                         $.ajax({
                             url: rvbs_ajax.ajax_url,
                             type: 'POST',
@@ -467,7 +483,6 @@ $is_fse_theme = wp_is_block_theme();
                             success: function(response) {
                                 if (response.success) {
                                     $('#add-to-cart-btn').prop('disabled', false).text('Add to Cart');
-
                                     if (response.data.html == 'available') {
                                         $('#dateError').text('Available for this date');
                                         $('#dateError').css('color', 'green');
@@ -499,7 +514,7 @@ $is_fse_theme = wp_is_block_theme();
                     }
                 },
                 onClose: function(selectedDates) {
-                    // ... (rest of your onClose function remains the same)
+                    // Keep your existing onClose logic if any
                 },
                 appendTo: document.querySelector('.calendar-container')
             });
@@ -528,3 +543,5 @@ $is_fse_theme = wp_is_block_theme();
 
     <?php wp_footer(); // Ensures scripts & footer styles load 
     ?>
+</body>
+</html>
