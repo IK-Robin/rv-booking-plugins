@@ -356,7 +356,7 @@ function rvbs_enqueue_scripts()
 {
     wp_enqueue_script('jquery');
 
-    wp_register_script('rvbs-booking', get_template_directory_uri() . 'assets/js/rvbs-booking.js', array('jquery'), '1.0', true);
+    wp_register_script('rvbs-booking', get_template_directory_uri() . './assets/js/rvbs-booking.js', array('jquery'), '1.0', true);
 
     wp_localize_script('rvbs-booking', 'rvbs_ajax', array(
         'ajax_url' => admin_url('admin-ajax.php'),
