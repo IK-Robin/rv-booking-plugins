@@ -256,6 +256,8 @@ $('#booking-form').on('submit', function(e) {
 
                 // Update cart count
                 $('.cart-count').text(response.data.cart_count);
+                $('.cart-total').text('$' + response.data.total_price);
+
             } else {
                 $('#booking-form').prepend(`<p class="error-message" style="color: red;">Error: ${response.data.message || 'Failed to add to cart'}</p>`);
             }
