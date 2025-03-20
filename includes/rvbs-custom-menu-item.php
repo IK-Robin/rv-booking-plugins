@@ -107,7 +107,7 @@ function custom_add_loginout_cart_link_classic($items, $args) {
         // 2. Add Custom Cart Menu Item
         $cart_count = get_custom_cart_count();
         $cart_total = get_custom_cart_total();
-        $cart_url = home_url('/cart/'); // Replace with your cart page URL
+        $cart_url = home_url('/shopping-cart/'); // Replace with your cart page URL
 
         $cart_item = (object) array(
             'title'            => '$' . number_format($cart_total, 2) . ' <span class="cart-icon-wrap"><span class="cart-count">' . $cart_count . '</span></span>',
@@ -150,6 +150,7 @@ function custom_add_loginout_cart_link_classic($items, $args) {
  * Add Login/Logout and Custom Cart menu items for block themes (at the end of menu)
  */
 add_filter('render_block_core/navigation', 'custom_add_loginout_cart_link_block', 10, 2);
+
 function custom_add_loginout_cart_link_block($block_content, $block) {
     static $custom_menu_items_added = false; // Prevent multiple additions
 
@@ -161,7 +162,9 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
     if (strpos($block_content, '<ul') !== false) {
         // Login/Logout Link
         $loginout_html = sprintf(
-            '<li class="wp-block-navigation-item custom-loginout-link"><a href="%s">%s</a></li>',
+            '<li class="wp-block-navigation-item custom-loginout-link">
+                <a class="cart-total" href="%s">%s</a>
+            </li>',
             esc_url(is_user_logged_in() ? wp_logout_url(home_url()) : wp_login_url(home_url())),
             esc_html(is_user_logged_in() ? __('Log Out') : __('Log In'))
         );
@@ -176,7 +179,14 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
         if (wp_is_block_theme()) {
             // Block theme: Don't add $ sign in PHP, use JS instead
             $cart_html = sprintf(
-                '<li class="wp-block-navigation-item custom-cart-link block-cart"><a href="%s"><span class="cart-total">%s</span> <span class="cart-icon-wrap"><span class="cart-count">%s</span></span></a></li>',
+                '<li class="wp-block-navigation-item custom-cart-link block-cart">
+                    <a href="%s">
+                        <span class="cart-total">%s</span>
+                        <span class="cart-icon-wrap">
+                            <span class="cart-count">%s</span>
+                        </span>
+                    </a>
+                </li>',
                 $cart_url,
                 esc_html($cart_total), // No $ sign in PHP
                 esc_html($cart_count)
@@ -184,21 +194,33 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
         } else {
             // Classic theme: Add the $ sign directly in PHP
             $cart_html = sprintf(
-                '<li class="wp-block-navigation-item custom-cart-link classic-cart"><a href="%s">$%s <span class="cart-icon-wrap"><span class="cart-count">%s</span></span></a></li>',
-                $cart_url,
-                esc_html($cart_total), // Add $ sign here
+                '<li class="wp-block-navigation-item custom-cart-link classic-cart">
+                    <a href="%s" class="cart-total">
+                        <span class="cart-total"><strong>$%s</strong></span> <!-- Ensure visibility -->
+                        <span class="cart-icon-wrap">
+                            <span class="cart-count">%s</span>
+                        </span>
+                    </a>
+                </li>',
+                esc_url($cart_url),
+                esc_html(number_format(floatval($cart_total), 2)), // Format total with two decimals
                 esc_html($cart_count)
             );
         }
 
         // Append items BEFORE the closing </ul> tag to place at the end
-        $block_content = preg_replace('/(<\/ul>)/', $loginout_html . $cart_html . '$1', $block_content, 1);
+        $block_content = preg_replace('/(<\/ul>)/i', $loginout_html . $cart_html . '$1', $block_content, 1);
 
         $custom_menu_items_added = true; // Prevent duplication
     }
 
     return $block_content;
 }
+
+// Debugging: Ensure filter runs
+add_action('wp_footer', function() {
+    echo '<script>console.log("Custom navigation filter executed.");</script>';
+});
 
 
 
