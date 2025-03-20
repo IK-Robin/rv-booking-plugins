@@ -143,3 +143,15 @@ function debug_session_cart() {
     }
 }
 add_action('wp_footer', 'debug_session_cart');
+
+
+// edit the cart item depending on their qnique id
+function rvbs_edit_cart_item() {
+    // Verify AJAX request & nonce
+    if (!check_ajax_referer('rvbs_edit_cart_item_nonce', '_ajax_nonce', false)) {
+        wp_send_json_error(['message' => 'Nonce verification failed']);
+        return;
+    }
+
+    var_dump('hello');
+}
