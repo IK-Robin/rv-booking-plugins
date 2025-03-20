@@ -1,5 +1,13 @@
 <?php 
 
+/**
+ * rv_booking_system plugin
+ *
+ * @package rv_booking_system plugin
+ * 
+ * @link functionn.php
+ * @see includes/rvbs-custom-menu-item.php
+ */
 
 // Prevent direct file access
 if (!defined('ABSPATH')) {
@@ -162,7 +170,7 @@ function custom_add_loginout_cart_link_block($block_content, $block) {
         $cart_count = get_custom_cart_count();
         $cart_total = get_custom_cart_total();
         $cart_total = number_format((float) $cart_total, 2, '.', '');
-        $cart_url = esc_url(home_url('/cart/')); // Replace with your cart page URL
+        $cart_url = esc_url(home_url('/shopping-cart/')); // Replace with your cart page URL
 
         // Check if the theme is block-based
         if (wp_is_block_theme()) {
