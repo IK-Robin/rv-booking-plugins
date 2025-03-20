@@ -253,15 +253,25 @@ $('#booking-form').on('submit', function(e) {
             if (response.success) {
                 $('#booking-form').prepend('<p class="success-message" style="color: green;">Added to cart successfully!</p>');
                 setTimeout(() => $('.success-message').remove(), 3000);
-
+        
+                // Ensure the total price is formatted to two decimal places
+                let formattedPrice = parseFloat(response.data.total_price).toFixed(2);
+        
                 // Update cart count
                 $('.cart-count').text(response.data.cart_count);
-                $('.cart-total').text('$' + response.data.total_price);
-
+        
+                // Append updated HTML to .custom-cart-link
+                $('.custom-cart-link').html(`
+                    <span class="cart-total-price">$${formattedPrice}</span>
+                    <i class="fa fa-shopping-cart"></i>
+                    <span class="cart-count">${response.data.cart_count}</span>
+                `);
             } else {
                 $('#booking-form').prepend(`<p class="error-message" style="color: red;">Error: ${response.data.message || 'Failed to add to cart'}</p>`);
             }
         },
+        
+        
         error: function(jqXHR, textStatus, errorThrown) {
             console.error('AJAX Error:', textStatus, errorThrown);
             $('#booking-form').prepend('<p class="error-message" style="color: red;">An error occurred. Please try again.</p>');
