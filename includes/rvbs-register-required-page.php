@@ -5,6 +5,16 @@
 // Hook to run when the plugin is activated
 
 
+/**
+ * rv_booking_system plugin
+ *
+ * @package rv_booking_system plugin
+ * 
+ * @link all template files
+ * @see
+ */
+
+
 function my_custom_plugin_create_pages() {
     $pages = [
         [
@@ -18,7 +28,13 @@ function my_custom_plugin_create_pages() {
             'slug'    => 'booknow',
             'content' => 'This is a custom page created by the plugin for booking RVs.',
             'template' => '../templates/rvbs-book-now.php'
-        ]
+        ],
+        [
+            'title'   => 'shopping-cart',
+            'slug'    => 'shopping-cart',
+            'content' => 'This is a custom page created by the plugin for booking RVs.',
+            'template' => '../templates/shopping-cart.php'
+        ],
     ];
 
     foreach ($pages as $page) {
@@ -46,6 +62,7 @@ add_filter('theme_page_templates', 'my_custom_plugin_add_templates');
 function my_custom_plugin_add_templates($templates) {
     $templates['../templates/search-rv.php'] = 'Search RV';
     $templates['../templates/rvbs-book-now.php'] = 'Book Now';
+    $templates['../templates/shopping-cart.php'] = 'Shopping Cart';
     // $templates['../templates/catagory_filter.php'] = 'Category Filter';
     return $templates;
 }
@@ -63,6 +80,12 @@ function my_custom_plugin_load_template($template) {
     }
     if (is_page('booknow')) {
         $plugin_template = plugin_dir_path(__FILE__) . '../templates/rvbs-book-now.php';
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+    }
+    if (is_page('shopping-cart')) {
+        $plugin_template = plugin_dir_path(__FILE__) . '../templates/shopping-cart.php';
         if (file_exists($plugin_template)) {
             return $plugin_template;
         }
