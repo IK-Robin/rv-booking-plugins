@@ -20,22 +20,29 @@ if (!$post_id || !$check_in || !$check_out) {
     exit;
 }
 
-// Load session data and check for matching campsite
+// Determine if we should load session data
 $session_data = [];
-if ($edit_mode && isset($_SESSION['cart']) && is_array($_SESSION['cart']) && isset($_SESSION['cart'][$post_id])) {
+$use_session_data = false;
+
+// Check if URL has campsite or edit, and if session has matching campsite
+if ((isset($_GET['campsite']) || $edit_mode) && 
+    isset($_SESSION['cart']) && 
+    is_array($_SESSION['cart']) && 
+    isset($_SESSION['cart'][$post_id])) {
     $session_data = $_SESSION['cart'][$post_id];
+    $use_session_data = true;
 }
 
-// Set values from session if edit mode and campsite matches, otherwise from URL or defaults
-$adults = $edit_mode && isset($session_data['adults']) ? intval($session_data['adults']) : (isset($_GET['adults']) ? intval($_GET['adults']) : 1);
-$children = $edit_mode && isset($session_data['children']) ? intval($session_data['children']) : (isset($_GET['children']) ? intval($_GET['children']) : 0);
-$pets = $edit_mode && isset($session_data['pets']) ? intval($session_data['pets']) : (isset($_GET['pets']) ? intval($_GET['pets']) : 0);
-$equipment_type = $edit_mode && isset($session_data['equipment_type']) ? sanitize_text_field($session_data['equipment_type']) : (isset($_GET['equipment_type']) ? sanitize_text_field($_GET['equipment_type']) : '');
-$length_ft = $edit_mode && isset($session_data['length_ft']) ? intval($session_data['length_ft']) : (isset($_GET['length_ft']) ? intval($_GET['length_ft']) : '');
-$slide_outs = $edit_mode && isset($session_data['slide_outs']) ? sanitize_text_field($session_data['slide_outs']) : (isset($_GET['slide_outs']) ? sanitize_text_field($_GET['slide_outs']) : '');
-$site_location = $edit_mode && isset($session_data['site_location']) ? sanitize_text_field($session_data['site_location']) : '';
-$check_in = $edit_mode && isset($session_data['check_in']) ? sanitize_text_field($session_data['check_in']) : $check_in;
-$check_out = $edit_mode && isset($session_data['check_out']) ? sanitize_text_field($session_data['check_out']) : $check_out;
+// Set values from session if conditions met, otherwise from URL or defaults
+$adults = $use_session_data && isset($session_data['adults']) ? intval($session_data['adults']) : (isset($_GET['adults']) ? intval($_GET['adults']) : 1);
+$children = $use_session_data && isset($session_data['children']) ? intval($session_data['children']) : (isset($_GET['children']) ? intval($_GET['children']) : 0);
+$pets = $use_session_data && isset($session_data['pets']) ? intval($session_data['pets']) : (isset($_GET['pets']) ? intval($_GET['pets']) : 0);
+$equipment_type = $use_session_data && isset($session_data['equipment_type']) ? sanitize_text_field($session_data['equipment_type']) : (isset($_GET['equipment_type']) ? sanitize_text_field($_GET['equipment_type']) : '');
+$length_ft = $use_session_data && isset($session_data['length_ft']) ? intval($session_data['length_ft']) : (isset($_GET['length_ft']) ? intval($_GET['length_ft']) : '');
+$slide_outs = $use_session_data && isset($session_data['slide_outs']) ? sanitize_text_field($session_data['slide_outs']) : (isset($_GET['slide_outs']) ? sanitize_text_field($_GET['slide_outs']) : '');
+$site_location = $use_session_data && isset($session_data['site_location']) ? sanitize_text_field($session_data['site_location']) : '';
+$check_in = $use_session_data && isset($session_data['check_in']) ? sanitize_text_field($session_data['check_in']) : $check_in;
+$check_out = $use_session_data && isset($session_data['check_out']) ? sanitize_text_field($session_data['check_out']) : $check_out;
 
 // Check if theme is block-based
 $is_fse_theme = wp_is_block_theme();
@@ -79,6 +86,9 @@ $is_fse_theme = wp_is_block_theme();
     $nights = $check_in && $check_out ? (new DateTime($check_in))->diff(new DateTime($check_out))->days : 0;
     $check_in_formatted = $check_in ? (new DateTime($check_in))->format('D, M d') : 'Check In';
     $check_out_formatted = $check_out ? (new DateTime($check_out))->format('D, M d') : 'Check Out';
+
+    // Determine button text based on whether campsite exists in cart
+    $button_text = $use_session_data ? 'Update' : 'Add to Cart';
     ?>
 
     <div class="container my-5">
@@ -211,7 +221,7 @@ $is_fse_theme = wp_is_block_theme();
                                     <option value="">Select Equipment Type</option>
                                     <option value="rv" <?php echo $equipment_type === 'rv' ? 'selected' : ''; ?>>RV</option>
                                     <option value="tent" <?php echo $equipment_type === 'tent' ? 'selected' : ''; ?>>Tent</option>
-                                    <option value="tent" <?php echo $equipment_type === 'trailer' ? 'selected' : ''; ?>>Trailer</option>
+                                    <option value="trailer" <?php echo $equipment_type === 'trailer' ? 'selected' : ''; ?>>Trailer</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -222,7 +232,7 @@ $is_fse_theme = wp_is_block_theme();
                                 <label class="form-label">Slide-Outs</label>
                                 <select class="form-select" id="slide_outs" name="slide_outs">
                                     <option value="">Select Slide-Outs</option>
-                                    <option value="0" <?php echo $slide_outs === '0' ? 'selected' : ''; ?>>Slide-Outs</option>
+                                    <option value="0" <?php echo $slide_outs === '0' ? 'selected' : ''; ?>>0 Slide-Outs</option>
                                     <option value="1" <?php echo $slide_outs === '1' ? 'selected' : ''; ?>>1 Slide-Out</option>
                                     <option value="2" <?php echo $slide_outs === '2' ? 'selected' : ''; ?>>2 Slide-Outs</option>
                                     <option value="3" <?php echo $slide_outs === '3' ? 'selected' : ''; ?>>3 Slide-Outs</option>
@@ -263,7 +273,7 @@ $is_fse_theme = wp_is_block_theme();
                         </div>
 
                         <!-- Add to Cart / Update Button -->
-                        <button type="submit" class="btn btn-success w-100" id="submit-btn"><?php echo $edit_mode ? 'Update' : 'Add to Cart'; ?></button>
+                        <button type="submit" class="btn btn-success w-100" id="submit-btn"><?php echo $button_text; ?></button>
                         <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
                         <input type="hidden" name="room_title" value="<?php echo esc_attr($lot->post_title); ?>">
                     </form>
@@ -330,26 +340,20 @@ $is_fse_theme = wp_is_block_theme();
         jQuery(document).ready(function($) {
             let isAvailable = false;
             const editMode = <?php echo json_encode($edit_mode); ?>;
+            const useSessionData = <?php echo json_encode($use_session_data); ?>;
             const nightlyRate = <?php echo json_encode($price); ?>;
             const campgroundFees = <?php echo json_encode($campground_fees); ?>;
             const campsiteId = <?php echo json_encode($post_id); ?>;
 
-            // If in edit mode, ensure all fields are updated from session
-            if (editMode) {
-                // Guest counts
+            // If using session data, update all fields
+            if (useSessionData) {
                 $('#adultsCount').val(<?php echo json_encode($adults); ?>);
                 $('#childrenCount').val(<?php echo json_encode($children); ?>);
                 $('#petsCount').val(<?php echo json_encode($pets); ?>);
-                
-                // Hidden inputs
                 $('#adultsInput').val(<?php echo json_encode($adults); ?>);
                 $('#childrenInput').val(<?php echo json_encode($children); ?>);
                 $('#petsInput').val(<?php echo json_encode($pets); ?>);
-                
-                // Update guest summary
                 updateGuestSummary();
-
-                // Equipment details and site location are set via PHP
             }
 
             // Format date as YYYY-MM-DD
@@ -404,7 +408,6 @@ $is_fse_theme = wp_is_block_theme();
                         updatePriceBreakdown(check_in, check_out);
                         updateURL(check_in, check_out);
 
-                        // Availability check
                         $.ajax({
                             url: rvbs_ajax.ajax_url,
                             type: 'POST',
@@ -418,7 +421,7 @@ $is_fse_theme = wp_is_block_theme();
                             },
                             success: function(response) {
                                 if (response.success && response.data.html === 'available') {
-                                    $('#submit-btn').prop('disabled', false).text(editMode ? 'Update' : 'Add to Cart');
+                                    $('#submit-btn').prop('disabled', false).text(useSessionData ? 'Update' : 'Add to Cart');
                                     $('#dateError').text('Available for this date').css('color', 'green');
                                     isAvailable = true;
                                 } else {
@@ -444,21 +447,48 @@ $is_fse_theme = wp_is_block_theme();
                 window.openCalendar();
             });
 
-            // Form submission
+            // Form submission with AJAX
             $('#booking-form').on('submit', function(e) {
                 e.preventDefault();
                 if (!isAvailable) return;
 
-                const formData = $(this).serialize();
-                if (editMode) {
-                    console.log('Update booking:', formData);
-                    // Replace with actual AJAX call for updating booking
-                    // $.post('/wp-admin/admin-ajax.php?action=update_booking', formData, function(response) { ... });
-                } else {
-                    console.log('Add to cart:', formData);
-                    // Replace with actual AJAX call for adding to cart
-                    // $.post('/wp-admin/admin-ajax.php?action=add_to_cart', formData, function(response) { ... });
-                }
+                const formData = new FormData(this);
+                formData.append('action', 'add_to_cart');
+                formData.append('_ajax_nonce', rvbs_add_to_cart.nonce);
+                formData.append('edit_mode', useSessionData); // Use useSessionData to indicate update
+
+                $.ajax({
+                    type: 'POST',
+                    url: rvbs_add_to_cart.ajax_url,
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function() {
+                        $('#submit-btn').text('Processing...').prop('disabled', true);
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#booking-form').prepend(`<p class="success-message" style="color: green;">${response.data.message}</p>`);
+                            setTimeout(() => $('.success-message').remove(), 3000);
+                            let formattedPrice = parseFloat(response.data.total_price).toFixed(2);
+                            $('.cart-count').text(response.data.cart_count);
+                            $('.custom-cart-link a').html(`
+                                <span class="cart-total-price">$${formattedPrice}</span>
+                                <i class="fa fa-shopping-cart"></i>
+                                <span class="cart-count">${response.data.cart_count}</span>
+                            `);
+                        } else {
+                            $('#booking-form').prepend(`<p class="error-message" style="color: red;">Error: ${response.data.message || 'Failed to process'}</p>`);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX Error:', textStatus, errorThrown);
+                        $('#booking-form').prepend('<p class="error-message" style="color: red;">An error occurred. Please try again.</p>');
+                    },
+                    complete: function() {
+                        $('#submit-btn').text(useSessionData ? 'Update' : 'Add to Cart').prop('disabled', false);
+                    }
+                });
             });
         });
     </script>
