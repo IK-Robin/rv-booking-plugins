@@ -277,7 +277,7 @@ $('#booking-form').on('submit', function(e) {
                     <i class="fa fa-shopping-cart"></i>
                     <span class="cart-count">${response.data.cart_count}</span>
                 `);
-                // window.location.href = response.data.cart_url;
+                window.location.href = response.data.cart_url;
             } else {
                 $('#booking-form').prepend(`<p class="error-message" style="color: red;">Error: ${response.data.message || 'Failed to add to cart'}</p>`);
             }
@@ -294,6 +294,7 @@ $('#booking-form').on('submit', function(e) {
     });
 
 
+      
 
     // edit the cart item quantity first check the url is ther edit true or false if true then update the quantity
 
@@ -308,6 +309,68 @@ console.log('run')
     }
 
 });
+
+
+
+// Handle remove item click
+$('.remove-item').on('click', function(e) {
+    e.preventDefault();
+    const $this = $(this);
+    const postId = $this.data('id');
+    const $cartItem = $this.closest('.cart-item');
+
+    $.ajax({
+        type: 'POST',
+        url: rvbs_add_to_cart.ajax_url,
+        data: {
+            action: rvbs_add_to_cart.remove_from_cart,
+            _ajax_nonce: rvbs_add_to_cart.nonce,
+            post_id: postId
+        },
+        beforeSend: function() {
+            $this.text('Removing...').prop('disabled', true);
+        },
+        success: function(response) {
+            if (response.success) {
+                // Remove the item from the DOM
+                $cartItem.remove();
+
+                // Update cart count
+                const newCount = response.data.cart_count;
+                $('.cart-count-text').text(newCount + ' Sites');
+                $('.cart-count').text(newCount);
+
+                // Update cart total
+                $('.cart-total').text(parseFloat(response.data.cart_total).toFixed(2));
+
+                // If cart is empty, show empty message
+                if (newCount === 0) {
+                    $('.cart-wrapper').remove();
+                    $('.container').append('<p class="empty-cart-message">Your cart is empty.</p>');
+                }
+
+                // Optional: Update cart link in header if it exists
+                if ($('.custom-cart-link a').length) {
+                    $('.custom-cart-link a').html(`
+                        <span class="cart-total-price">$${parseFloat(response.data.cart_total).toFixed(2)}</span>
+                        <i class="fa fa-shopping-cart"></i>
+                        <span class="cart-count">${newCount}</span>
+                    `);
+                }
+            } else {
+                alert('Error: ' + (response.data.message || 'Failed to remove item'));
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('AJAX Error:', textStatus, errorThrown);
+            alert('An error occurred while removing the item. Please try again.');
+        },
+        complete: function() {
+            $this.text('Remove').prop('disabled', false);
+        }
+    });
+});
+
 
 
 
