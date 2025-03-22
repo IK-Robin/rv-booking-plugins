@@ -37,6 +37,11 @@ function handle_add_to_cart() {
         return;
     }
 
+    // Start session if not already started
+    if (!session_id()) {
+        session_start();
+    }
+
     // Define required fields
     $required_fields = [
         'campsite' => 'Campsite ID',
@@ -58,6 +63,9 @@ function handle_add_to_cart() {
             return;
         }
     }
+
+    // Check edit mode
+    $check_edit_mode = isset($_POST['edit_mode']) ? filter_var($_POST['edit_mode'], FILTER_VALIDATE_BOOLEAN) : false;
 
     // Sanitize and validate input data
     $rv_booking = [
@@ -94,39 +102,57 @@ function handle_add_to_cart() {
         return;
     }
 
-    // Add to cart
-    $_SESSION['cart'][$rv_booking['post_id']] = $rv_booking;
+    // Initialize cart session if not exists
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
+    }
+
+    // Handle cart update based on edit mode
+    if ($check_edit_mode) {
+        // Update existing item in session if it exists
+        if (isset($_SESSION['cart'][$rv_booking['post_id']])) {
+            $_SESSION['cart'][$rv_booking['post_id']] = $rv_booking;
+            $message = 'Booking updated successfully';
+        } else {
+            // If in edit mode but item doesn't exist, treat as error or add as new (depending on your preference)
+            $_SESSION['cart'][$rv_booking['post_id']] = $rv_booking;
+            $message = 'Booking added (no previous entry found to update)';
+        }
+    } else {
+        // Add new item to cart
+        $_SESSION['cart'][$rv_booking['post_id']] = $rv_booking;
+        $message = 'Added to cart successfully';
+    }
+
+    // Update cart total items
     $_SESSION['cart_total_items'] = count($_SESSION['cart']);
 
-    // update cart total price 
-
+    // Calculate cart total price
     $cart_total = 0.0;
-
     if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
         foreach ($_SESSION['cart'] as $item) {
             $post_id = $item['post_id'];
             $price = floatval(get_post_meta($post_id, '_rv_lots_price', true)) ?: 20.00; // Default to 20 if not set
-            $nights = 1; // Default to 1 night; adjust if you have check_in/check_out logic
+            $nights = 1; // Default to 1 night
             if (isset($item['check_in']) && isset($item['check_out'])) {
                 $check_in = new DateTime($item['check_in']);
                 $check_out = new DateTime($item['check_out']);
                 $nights = $check_in->diff($check_out)->days ?: 1;
             }
-  $cart_total += $price * $nights;
-           
+            $cart_total += $price * $nights;
         }
     }
-
 
     // Debugging: Log session data (Remove in production)
     error_log(print_r($_SESSION, true));
 
     // Send success response
     wp_send_json_success([
-        'cart_count' => $_SESSION['cart_total_items'],
-        'cart'       => $_SESSION['cart'],
-        'total_price'       =>  $cart_total,
-        'message'    => 'Added to cart successfully'
+        'cart_count'   => $_SESSION['cart_total_items'],
+        'cart'         => $_SESSION['cart'],
+        'total_price'  => $cart_total,
+        'message'      => $message,
+        'cart_url'     => home_url('/shopping-cart/')
     ]);
 }
 
