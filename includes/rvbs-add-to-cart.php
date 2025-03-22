@@ -160,15 +160,72 @@ function handle_add_to_cart() {
 add_action('wp_ajax_add_to_cart', 'handle_add_to_cart');
 add_action('wp_ajax_nopriv_add_to_cart', 'handle_add_to_cart');
 
-// Debug: Display session data in the footer
-function debug_session_cart() {
-    if (isset($_SESSION['cart'])) {
-        echo '<pre>';
-        var_dump($_SESSION['cart']);
-        echo '</pre>';
+
+// Remove item from cart
+// AJAX handler to remove item from cart
+add_action('wp_ajax_remove_from_cart', 'rvbs_remove_from_cart');
+add_action('wp_ajax_nopriv_remove_from_cart', 'rvbs_remove_from_cart');
+function rvbs_remove_from_cart() {
+    // Verify nonce
+    check_ajax_referer('rvbs_add_to_cart_nonce', '_ajax_nonce');
+
+    // Start session if not already started
+    if (!session_id()) {
+        session_start();
     }
+
+    // Get the post ID to remove
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+
+    if (!$post_id) {
+        wp_send_json_error(['message' => 'Invalid item ID']);
+        wp_die();
+    }
+
+    // Check if cart exists and item is in cart
+    if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && isset($_SESSION['cart'][$post_id])) {
+        // Remove the item from the cart
+        unset($_SESSION['cart'][$post_id]);
+
+        // Update cart total items
+        $_SESSION['cart_total_items'] = count($_SESSION['cart']);
+
+        // Recalculate cart total
+        $cart_total = 0;
+        if (!empty($_SESSION['cart'])) {
+            foreach ($_SESSION['cart'] as $item) {
+                $price = floatval(get_post_meta($item['post_id'], '_rv_lots_price', true)) ?: 20.00;
+                $nights = (new DateTime($item['check_in']))->diff(new DateTime($item['check_out']))->days ?: 1;
+                $cart_total += $price * $nights;
+            }
+        }
+
+        // If cart is empty, unset it
+        if (empty($_SESSION['cart'])) {
+            unset($_SESSION['cart']);
+            unset($_SESSION['cart_total_items']);
+        }
+
+        wp_send_json_success([
+            'cart_count' => isset($_SESSION['cart_total_items']) ? $_SESSION['cart_total_items'] : 0,
+            'cart_total' => $cart_total,
+            'message' => 'Item removed successfully'
+        ]);
+    } else {
+        wp_send_json_error(['message' => 'Item not found in cart']);
+    }
+
+    wp_die();
 }
-add_action('wp_footer', 'debug_session_cart');
+// // Debug: Display session data in the footer
+// function debug_session_cart() {
+//     if (isset($_SESSION['cart'])) {
+//         echo '<pre>';
+//         var_dump($_SESSION['cart']);
+//         echo '</pre>';
+//     }
+// }
+// add_action('wp_footer', 'debug_session_cart');
 
 
 // edit the cart item depending on their qnique id
