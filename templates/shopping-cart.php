@@ -156,7 +156,7 @@ $cart_total = 0;
                         <p><?php echo esc_html($item['check_in'] . ' - ' . $item['check_out']); ?></p>
                         <p>Guests: <?php echo esc_html($item['adults'] . ' Adults, ' . $item['children'] . ' Children'); ?></p>
                         <p>Price: $<?php echo number_format($subtotal, 2); ?></p>
-                        <a href="<?php echo esc_url( home_url( '/booknow' ) . '?campsite=' . urlencode( $post_id ) . '&check_in=' . urlencode( $check_in->format('Y-m-d') ) . '&check_out=' . urlencode( $check_out->format('Y-m-d') ) ); ?>" class="edit-item text-decoration-none" data-id="<?php echo esc_attr( $post_id ); ?>">Edit</a>
+                        <a href="<?php echo esc_url( home_url( '/booknow' ) . '?campsite=' . urlencode( $post_id ). '&edit=true' . '&check_in=' . urlencode( $check_in->format('Y-m-d') ) . '&check_out=' . urlencode( $check_out->format('Y-m-d') ) ); ?>" class="edit-item text-decoration-none" data-id="<?php echo esc_attr( $post_id ); ?>">Edit</a>
                         <a href="#" class="remove-item" data-id="<?php echo esc_attr($post_id); ?>">Remove</a>
                     </div>
                 </div>
