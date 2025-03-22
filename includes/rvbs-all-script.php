@@ -29,6 +29,7 @@ function rvbs_add_all_script() {
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('rvbs_add_to_cart_nonce'),
         'add_to_cart' => 'add_to_cart',
+        'remove_from_cart' => 'remove_from_cart',
     ));
 
 
