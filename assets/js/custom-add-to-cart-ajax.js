@@ -1,3 +1,5 @@
+// this file us connnected to the rvbs-add-to-cart.php file
+
 jQuery(document).ready(function ($) {
     // Handle increase quantity
 //     $(document).on('click', '.increase-quantity', function (e) {
@@ -182,7 +184,8 @@ jQuery(document).ready(function ($) {
     //     },
     // });
 
-
+    const urlParams = new URLSearchParams(window.location.search);
+    const edit = urlParams.get('edit');
 
 // Form submission with validation
 $('#booking-form').on('submit', function(e) {
@@ -198,6 +201,9 @@ $('#booking-form').on('submit', function(e) {
     const length_ft = $('#length_ft').val().trim();
     const slide_outs = $('#slide_outs').val().trim();
     const site_location = $('#site_location').val().trim();
+    // check the edit is true or false if true then update the quantity of the cart item
+
+   
 
     // Validation flag
     let isValid = true;
@@ -239,6 +245,11 @@ $('#booking-form').on('submit', function(e) {
     const formData = new FormData(this);
     formData.append('action', 'add_to_cart');
     formData.append('_ajax_nonce', rvbs_add_to_cart.nonce);
+    if (edit === 'true') {
+        formData.append('edit_mode', 'true');
+    }else{
+         
+    }
 
     $.ajax({
         type: 'POST',
@@ -261,11 +272,12 @@ $('#booking-form').on('submit', function(e) {
                 $('.cart-count').text(response.data.cart_count);
         
                 // Append updated HTML to .custom-cart-link
-                $('.custom-cart-link').html(`
+                $('.custom-cart-link a').html(`
                     <span class="cart-total-price">$${formattedPrice}</span>
                     <i class="fa fa-shopping-cart"></i>
                     <span class="cart-count">${response.data.cart_count}</span>
                 `);
+                // window.location.href = response.data.cart_url;
             } else {
                 $('#booking-form').prepend(`<p class="error-message" style="color: red;">Error: ${response.data.message || 'Failed to add to cart'}</p>`);
             }
@@ -280,6 +292,21 @@ $('#booking-form').on('submit', function(e) {
             $('#booking-form button[type="submit"]').text('Add to Cart').prop('disabled', false);
         }
     });
+
+
+
+    // edit the cart item quantity first check the url is ther edit true or false if true then update the quantity
+
+    // get the url edit = true 
+     
+  
+    if (edit === 'true') {
+        // Get the product ID and quantity from the URL
+        const product_id = urlParams.get('campsite');
+     
+console.log('run')
+    }
+
 });
 
 
