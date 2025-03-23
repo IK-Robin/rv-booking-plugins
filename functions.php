@@ -30,6 +30,9 @@ require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-custom-menu-item.php';
 // load the add to chart session here
 require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-add-to-cart.php';
 
+
+// load the checkout php here
+require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-checkout.php';
 // // Hook to include custom template from plugin
 
 // function my_custom_plugin_add_template($templates) {
