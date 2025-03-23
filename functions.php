@@ -32,7 +32,7 @@ require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-add-to-cart.php';
 
 
 // load the checkout php here
-require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-checkout.php';
+require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-db-handel/rvbs-checkout-booking.php';
 // // Hook to include custom template from plugin
 
 // function my_custom_plugin_add_template($templates) {
