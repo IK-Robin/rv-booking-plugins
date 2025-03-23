@@ -1,14 +1,30 @@
-<?php 
+<?php
 /**
- * rv_booking_system plugin 
+ * rv_booking_system plugin
  *
  * @package rv_booking_system
- * 
+ *
  * @link see in the function.php
  * @see work on the template rvbs-checkout.php
  */
 
- // AJAX handler for checkout
+
+
+
+
+// Enqueue scripts and localize AJAX data
+add_action('wp_enqueue_scripts', 'rvbs_enqueue_checkout_scripts');
+function rvbs_enqueue_checkout_scripts() {
+    if (is_page_template('checkout.php')) {
+        wp_enqueue_script('jquery');
+        wp_localize_script('jquery', 'rvbs_checkout', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('rvbs_checkout_nonce')
+        ));
+    }
+}
+
+// AJAX handler for checkout
 add_action('wp_ajax_rvbs_process_checkout', 'rvbs_process_checkout');
 add_action('wp_ajax_nopriv_rvbs_process_checkout', 'rvbs_process_checkout');
 function rvbs_process_checkout() {
@@ -77,12 +93,58 @@ function rvbs_process_checkout() {
     $booking_ids = [];
 
     foreach ($cart as $item) {
-        $lot_id = $item['post_id']; // Assuming post_id is the lot_id
+        // Validate cart item data
+        if (!isset($item['post_id']) || !isset($item['check_in']) || !isset($item['check_out'])) {
+            error_log('Missing cart item data: ' . print_r($item, true));
+            wp_send_json_error(['message' => 'Invalid cart item data']);
+            wp_die();
+        }
+
         $post_id = $item['post_id'];
         $check_in = $item['check_in'];
         $check_out = $item['check_out'];
+
+        // Validate post_id
+        if (!get_post($post_id)) {
+            error_log("Invalid post_id: $post_id");
+            wp_send_json_error(['message' => "Invalid post ID: $post_id"]);
+            wp_die();
+        }
+
+        // Fetch the correct lot_id from wp_rvbs_rv_lots based on post_id
+        // Assuming wp_rvbs_rv_lots has a column `post_id` linking to wp_posts(ID)
+        $lot_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}rvbs_rv_lots WHERE post_id = %d",
+                $post_id
+            )
+        );
+        if (!$lot_id) {
+            error_log("No lot found for post_id: $post_id");
+            wp_send_json_error(['message' => "No lot found for post ID: $post_id"]);
+            wp_die();
+        }
+
+        // Validate and format dates
+        try {
+            $check_in_date = new DateTime($check_in);
+            $check_out_date = new DateTime($check_out);
+            $check_in = $check_in_date->format('Y-m-d');
+            $check_out = $check_out_date->format('Y-m-d');
+        } catch (Exception $e) {
+            error_log("Invalid date format: check_in=$check_in, check_out=$check_out, error: " . $e->getMessage());
+            wp_send_json_error(['message' => 'Invalid date format']);
+            wp_die();
+        }
+
+        // Ensure check_out is after check_in
+        if ($check_in_date >= $check_out_date) {
+            wp_send_json_error(['message' => 'Check-out date must be after check-in date']);
+            wp_die();
+        }
+
         $price = floatval(get_post_meta($post_id, '_rv_lots_price', true)) ?: 20.00;
-        $nights = (new DateTime($check_in))->diff(new DateTime($check_out))->days ?: 1;
+        $nights = $check_in_date->diff($check_out_date)->days ?: 1;
         $subtotal = $price * $nights;
         $total_price += $subtotal;
 
@@ -103,7 +165,8 @@ function rvbs_process_checkout() {
         );
 
         if ($result === false) {
-            wp_send_json_error(['message' => 'Failed to create booking']);
+            error_log('Failed to create booking. Database error: ' . $wpdb->last_error);
+            wp_send_json_error(['message' => 'Failed to create booking. Database error: ' . $wpdb->last_error]);
             wp_die();
         }
 
