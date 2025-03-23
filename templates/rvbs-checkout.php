@@ -53,7 +53,7 @@ foreach ($cart as $item) {
 $campground_fees = 5.00;
 $total_charges = $cart_total + $campground_fees;
 
-// List of countries (same as before, abbreviated for brevity)
+// List of countries (abbreviated for brevity; include all as in previous responses)
 $countries = [
     'AF' => 'Afghanistan',
     'AX' => 'Aland Islands',

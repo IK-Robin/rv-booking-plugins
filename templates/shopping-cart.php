@@ -173,11 +173,7 @@ $cart_total = 0;
     </div>
 
     <!-- JavaScript with AJAX for removing items -->
-    <script>
-    jQuery(document).ready(function($) {
-      
-    });
-    </script>
+   
 
     <?php
     if (!$is_fse_theme) {
