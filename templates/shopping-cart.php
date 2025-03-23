@@ -164,7 +164,7 @@ $cart_total = 0;
                 <div class="cart-summary">
                     <h2>Summary</h2>
                     <p>Subtotal: $<span class="cart-total"><?php echo number_format($cart_total, 2); ?></span></p>
-                    <button class="checkout-btn">Proceed to Checkout</button>
+                    <a href="<?php echo home_url('/checkout/');?>" class="checkout-btn btn">Proceed to Checkout</a>
                 </div>
             </div>
         <?php else : ?>
