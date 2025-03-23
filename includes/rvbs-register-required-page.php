@@ -35,6 +35,12 @@ function my_custom_plugin_create_pages() {
             'content' => 'This is a custom page created by the plugin for booking RVs.',
             'template' => '../templates/shopping-cart.php'
         ],
+        [
+            'title'   => 'checkout',
+            'slug'    => 'checkout',
+            'content' => 'This is a custom page created by the plugin for booking RVs.',
+            'template' => '../templates/rvbs-checkout.php'
+        ],
     ];
 
     foreach ($pages as $page) {
@@ -63,6 +69,7 @@ function my_custom_plugin_add_templates($templates) {
     $templates['../templates/search-rv.php'] = 'Search RV';
     $templates['../templates/rvbs-book-now.php'] = 'Book Now';
     $templates['../templates/shopping-cart.php'] = 'Shopping Cart';
+    $templates['../templates/rvbs-checkout.php'] = 'Checkout';
     // $templates['../templates/catagory_filter.php'] = 'Category Filter';
     return $templates;
 }
@@ -86,6 +93,12 @@ function my_custom_plugin_load_template($template) {
     }
     if (is_page('shopping-cart')) {
         $plugin_template = plugin_dir_path(__FILE__) . '../templates/shopping-cart.php';
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+    }
+    if (is_page('checkout')) {
+        $plugin_template = plugin_dir_path(__FILE__) . '../templates/rvbs-checkout.php';
         if (file_exists($plugin_template)) {
             return $plugin_template;
         }
