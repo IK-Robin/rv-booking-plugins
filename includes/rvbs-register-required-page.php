@@ -41,6 +41,12 @@ function my_custom_plugin_create_pages() {
             'content' => 'This is a custom page created by the plugin for booking RVs.',
             'template' => '../templates/rvbs-checkout.php'
         ],
+        [
+            'title'   => 'Booking Confirmation',
+            'slug'    => 'booking-confirmation',
+            'content' => 'This is a custom page created by the plugin for booking RVs.',
+            'template' => '../templates/booking-confirmation.php'
+        ],
     ];
 
     foreach ($pages as $page) {
@@ -70,6 +76,7 @@ function my_custom_plugin_add_templates($templates) {
     $templates['../templates/rvbs-book-now.php'] = 'Book Now';
     $templates['../templates/shopping-cart.php'] = 'Shopping Cart';
     $templates['../templates/rvbs-checkout.php'] = 'Checkout';
+    $templates['../templates/booking-confirmation.php'] = 'Booking Confirmation';
     // $templates['../templates/catagory_filter.php'] = 'Category Filter';
     return $templates;
 }
