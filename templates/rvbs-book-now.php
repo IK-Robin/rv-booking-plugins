@@ -344,6 +344,8 @@ $is_fse_theme = wp_is_block_theme();
             const nightlyRate = <?php echo json_encode($price); ?>;
             const campgroundFees = <?php echo json_encode($campground_fees); ?>;
             const campsiteId = <?php echo json_encode($post_id); ?>;
+            const initialCheckIn = <?php echo json_encode($check_in); ?>;
+            const initialCheckOut = <?php echo json_encode($check_out); ?>;
 
             // If using session data, update all fields
             if (useSessionData) {
@@ -388,12 +390,55 @@ $is_fse_theme = wp_is_block_theme();
                 $('.fw-bold span:last').text(`$${total.toFixed(2)}`);
             }
 
+            // Check availability function
+            function checkAvailability(check_in, check_out) {
+                $.ajax({
+                    url: rvbs_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'rvbs_check_availability',
+                        nonce: rvbs_ajax.nonce,
+                        post_id: $('input[name="post_id"]').val(),
+                        check_in: check_in,
+                        check_out: check_out,
+                        filter: 'booknowpage'
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.html === 'available') {
+                            $('#submit-btn').prop('disabled', false).text(useSessionData ? 'Update' : 'Add to Cart');
+                            $('#dateError').text('Available for this date').css('color', 'green');
+                            isAvailable = true;
+                        } else {
+                            $('#submit-btn').prop('disabled', true).text('Unavailable');
+                            $('#dateError').text('Not available for this date').css('color', 'red');
+                            isAvailable = false;
+                            window.fpInstance.open();
+                        }
+                    },
+                    error: function() {
+                        $('#submit-btn').prop('disabled', true).text('Unavailable');
+                        $('#dateError').text('Error checking availability').css('color', 'red');
+                        isAvailable = false;
+                        window.fpInstance.open();
+                    }
+                });
+            }
+
+            // Check availability on page load
+            if (initialCheckIn && initialCheckOut) {
+                checkAvailability(initialCheckIn, initialCheckOut);
+            } else {
+                $('#submit-btn').prop('disabled', true).text('Select Dates');
+                $('#dateError').text('Please select dates').css('color', 'red');
+                isAvailable = false;
+            }
+
             // Initialize Flatpickr
             window.fpInstance = flatpickr("#dateRange", {
                 mode: "range",
                 dateFormat: "Y-m-d",
                 minDate: "today",
-                defaultDate: [<?php echo $check_in ? "'$check_in'" : 'null'; ?>, <?php echo $check_out ? "'$check_out'" : 'null'; ?>],
+                defaultDate: [initialCheckIn, initialCheckOut],
                 onChange: function(selectedDates) {
                     if (selectedDates.length === 2) {
                         const formatDate = date => date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
@@ -408,36 +453,7 @@ $is_fse_theme = wp_is_block_theme();
                         updatePriceBreakdown(check_in, check_out);
                         updateURL(check_in, check_out);
 
-                        $.ajax({
-                            url: rvbs_ajax.ajax_url,
-                            type: 'POST',
-                            data: {
-                                action: 'rvbs_check_availability',
-                                nonce: rvbs_ajax.nonce,
-                                post_id: $('input[name="post_id"]').val(),
-                                check_in: getISODate(check_in),
-                                check_out: getISODate(check_out),
-                                filter: 'booknowpage'
-                            },
-                            success: function(response) {
-                                if (response.success && response.data.html === 'available') {
-                                    $('#submit-btn').prop('disabled', false).text(useSessionData ? 'Update' : 'Add to Cart');
-                                    $('#dateError').text('Available for this date').css('color', 'green');
-                                    isAvailable = true;
-                                } else {
-                                    $('#submit-btn').prop('disabled', true).text('Unavailable');
-                                    $('#dateError').text('Not available for this date').css('color', 'red');
-                                    isAvailable = false;
-                                    window.fpInstance.open();
-                                }
-                            },
-                            error: function() {
-                                $('#submit-btn').prop('disabled', true).text('Unavailable');
-                                $('#dateError').text('Error checking availability').css('color', 'red');
-                                isAvailable = false;
-                                window.fpInstance.open();
-                            }
-                        });
+                        checkAvailability(getISODate(check_in), getISODate(check_out));
                     }
                 },
                 appendTo: document.querySelector('.calendar-container')
@@ -450,7 +466,11 @@ $is_fse_theme = wp_is_block_theme();
             // Form submission with AJAX
             $('#booking-form').on('submit', function(e) {
                 e.preventDefault();
-                if (!isAvailable) return;
+                if (!isAvailable) {
+                    $('#dateError').text('Please select available dates').css('color', 'red');
+                    window.fpInstance.open();
+                    return;
+                }
 
                 const formData = new FormData(this);
                 formData.append('action', 'add_to_cart');
@@ -486,7 +506,7 @@ $is_fse_theme = wp_is_block_theme();
                         $('#booking-form').prepend('<p class="error-message" style="color: red;">An error occurred. Please try again.</p>');
                     },
                     complete: function() {
-                        $('#submit-btn').text(useSessionData ? 'Update' : 'Add to Cart').prop('disabled', false);
+                        $('#submit-btn').text(useSessionData ? 'Update' : 'Add to Cart').prop('disabled', !isAvailable);
                     }
                 });
             });
