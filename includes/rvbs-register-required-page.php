@@ -110,6 +110,12 @@ function my_custom_plugin_load_template($template) {
             return $plugin_template;
         }
     }
+    if (is_page('booking-confirmation')) {
+        $plugin_template = plugin_dir_path(__FILE__) . '../templates/booking-confirmation.php';
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+    }
     return $template;
 }
 
