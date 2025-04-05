@@ -289,6 +289,19 @@ $is_fse_theme = wp_is_block_theme();
         .date-display span { margin: 0 5px; color: black; }
         .hidden-inputs { display: none; }
         .flatpickr-calendar { top: 100% !important; left: 50% !important; transform: translateX(-50%) !important; }
+        .flatpickr-day.disabled {
+    background-color: #ffcccc !important; /* Light red background */
+    color: #333 !important; /* Dark text for contrast */
+    cursor: not-allowed;
+
+}
+
+.flatpickr-day.disabled:hover {
+    background-color: #ff9999 !important; /* Slightly darker red on hover */
+}
+.flatpickr-day.nextMonthDay{
+    color: #000 !important;
+}
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
