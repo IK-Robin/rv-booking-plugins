@@ -178,6 +178,7 @@ add_action('wp_ajax_nopriv_rvbs_check_availability', 'rvbs_check_availability');
 
 
 // function to add the booking abavlity check for book now page
+
 add_action('wp_ajax_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
 add_action('wp_ajax_nopriv_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
 
@@ -203,7 +204,7 @@ function check_avablity_book_now_page_callback() {
         return;
     }
 
-    // Step 1: Check date availability (same as rvbs_check_availability)
+    // Step 1: Check date availability
     $query = $wpdb->prepare(
         "
         SELECT rl.*
@@ -234,11 +235,17 @@ function check_avablity_book_now_page_callback() {
     $available_lots = $wpdb->get_results($query);
     $is_date_available = !empty($available_lots);
 
-    // Step 2: Check guest capacity (example meta fields)
-    $max_adults = (int) get_post_meta($post_id, '_rv_lot_max_adults', true) ?: 4; // Default to 4 if not set
-    $max_children = (int) get_post_meta($post_id, '_rv_lot_max_children', true) ?: 4; // Default to 4
-    $max_pets = (int) get_post_meta($post_id, '_rv_lot_max_pets', true) ?: 2; // Default to 2
-    $total_guests = $adults + $children;
+    // get the max children pets and adults from the post meta
+    $price = floatval(get_post_meta($post_id, '_rv_lots_price', true)) ?: 20.00;
+
+    $max_adults = get_post_meta($post_id, 'max_adults', true);
+
+    // var_dump(get_post_meta($post_id));
+    $max_children = get_post_meta($post_id, 'max_children', true);
+$max_pets = get_post_meta($post_id, 'max_pets', true);
+    // Step 2: Dynamically calculate guest capacities from post meta
+  
+ // Default to 999 if not set
 
     $is_guest_capacity_ok = ($adults <= $max_adults && $children <= $max_children && $pets <= $max_pets);
     $guest_error = '';
@@ -246,27 +253,33 @@ function check_avablity_book_now_page_callback() {
     elseif ($children > $max_children) $guest_error = "Too many children (max $max_children).";
     elseif ($pets > $max_pets) $guest_error = "Too many pets (max $max_pets).";
 
-    // Step 3: Check equipment length
-    $max_length = (int) get_post_meta($post_id, '_rv_lot_max_length', true) ?: 50; // Default to 50 ft
+    // Step 3: Dynamically calculate max length from park_length taxonomy
+    $park_lengths = wp_get_post_terms($post_id, 'park_length', array('fields' => 'names'));
+    $max_length = 999; // Default to 999 if no term is set (effectively no limit)
+    if (!empty($park_lengths) && !is_wp_error($park_lengths)) {
+        // Extract numeric value from the first term (e.g., "40 ft" -> 40)
+        $first_length = $park_lengths[0];
+        $max_length = (int) preg_replace('/[^0-9]/', '', $first_length); // Strip non-numeric characters
+    }
+
     $is_length_ok = $length_ft <= $max_length || $length_ft === 0; // Allow 0 (not specified)
     $length_error = $length_ft > $max_length ? "Equipment length exceeds max ($max_length ft)." : '';
 
-    // Combine results
+    // Step 4: Combine results
     if ($is_date_available && $is_guest_capacity_ok && $is_length_ok) {
         wp_send_json_success(array('html' => 'available'));
     } else {
         $error_message = '';
         if (!$is_date_available) $error_message = 'Dates not available.';
-        elseif (!$is_guest_capacity_ok) $error_message = $guest_error;
+        elseif (!$is_guest_capacity_ok) $error_message = $guest_error; // Fixed assignment
         elseif (!$is_length_ok) $error_message = $length_error;
 
         wp_send_json_success(array(
             'html' => 'unavailable',
-            'message' => $error_message
+            'message' => $error_message ?: 'Unknown availability issue.'
         ));
     }
 }
-
 // Book lot AJAX handler
 function rvbs_book_lot()
 {
