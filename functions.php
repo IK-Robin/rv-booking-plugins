@@ -174,6 +174,99 @@ function rvbs_check_availability()
 add_action('wp_ajax_rvbs_check_availability', 'rvbs_check_availability');
 add_action('wp_ajax_nopriv_rvbs_check_availability', 'rvbs_check_availability');
 
+
+
+
+// function to add the booking abavlity check for book now page
+add_action('wp_ajax_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
+add_action('wp_ajax_nopriv_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
+
+function check_avablity_book_now_page_callback() {
+    check_ajax_referer('rvbs_booking_nonce', 'nonce');
+
+    global $wpdb;
+    $table_lots = $wpdb->prefix . 'rvbs_rv_lots';
+    $table_bookings = $wpdb->prefix . 'rvbs_bookings';
+
+    // Sanitize input
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+    $check_in = isset($_POST['check_in']) ? sanitize_text_field($_POST['check_in']) : '';
+    $check_out = isset($_POST['check_out']) ? sanitize_text_field($_POST['check_out']) : '';
+    $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 0;
+    $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
+    $pets = isset($_POST['pets']) ? intval($_POST['pets']) : 0;
+    $length_ft = isset($_POST['length_ft']) ? intval($_POST['length_ft']) : 0;
+
+    // Validate required fields
+    if (!$post_id || !$check_in || !$check_out) {
+        wp_send_json_error(array('message' => 'Missing required fields'));
+        return;
+    }
+
+    // Step 1: Check date availability (same as rvbs_check_availability)
+    $query = $wpdb->prepare(
+        "
+        SELECT rl.*
+        FROM $table_lots rl
+        WHERE rl.is_available = 1 
+        AND rl.is_trash = 0
+        AND rl.status = 'confirmed'
+        AND rl.post_id = %d
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM $table_bookings rb 
+            WHERE rb.post_id = rl.post_id
+            AND rb.lot_id = rl.id
+            AND rb.status IN ('pending', 'confirmed')
+            AND (
+                (%s BETWEEN rb.check_in AND rb.check_out)
+                OR (%s BETWEEN rb.check_in AND rb.check_out)
+                OR (rb.check_in BETWEEN %s AND %s)
+            )
+        )",
+        $post_id,
+        $check_in,
+        $check_out,
+        $check_in,
+        $check_out
+    );
+
+    $available_lots = $wpdb->get_results($query);
+    $is_date_available = !empty($available_lots);
+
+    // Step 2: Check guest capacity (example meta fields)
+    $max_adults = (int) get_post_meta($post_id, '_rv_lot_max_adults', true) ?: 4; // Default to 4 if not set
+    $max_children = (int) get_post_meta($post_id, '_rv_lot_max_children', true) ?: 4; // Default to 4
+    $max_pets = (int) get_post_meta($post_id, '_rv_lot_max_pets', true) ?: 2; // Default to 2
+    $total_guests = $adults + $children;
+
+    $is_guest_capacity_ok = ($adults <= $max_adults && $children <= $max_children && $pets <= $max_pets);
+    $guest_error = '';
+    if ($adults > $max_adults) $guest_error = "Too many adults (max $max_adults).";
+    elseif ($children > $max_children) $guest_error = "Too many children (max $max_children).";
+    elseif ($pets > $max_pets) $guest_error = "Too many pets (max $max_pets).";
+
+    // Step 3: Check equipment length
+    $max_length = (int) get_post_meta($post_id, '_rv_lot_max_length', true) ?: 50; // Default to 50 ft
+    $is_length_ok = $length_ft <= $max_length || $length_ft === 0; // Allow 0 (not specified)
+    $length_error = $length_ft > $max_length ? "Equipment length exceeds max ($max_length ft)." : '';
+
+    // Combine results
+    if ($is_date_available && $is_guest_capacity_ok && $is_length_ok) {
+        wp_send_json_success(array('html' => 'available'));
+    } else {
+        $error_message = '';
+        if (!$is_date_available) $error_message = 'Dates not available.';
+        elseif (!$is_guest_capacity_ok) $error_message = $guest_error;
+        elseif (!$is_length_ok) $error_message = $length_error;
+
+        wp_send_json_success(array(
+            'html' => 'unavailable',
+            'message' => $error_message
+        ));
+    }
+}
+
 // Book lot AJAX handler
 function rvbs_book_lot()
 {
