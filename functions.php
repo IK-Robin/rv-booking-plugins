@@ -182,7 +182,8 @@ add_action('wp_ajax_nopriv_rvbs_check_availability', 'rvbs_check_availability');
 add_action('wp_ajax_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
 add_action('wp_ajax_nopriv_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
 
-function check_avablity_book_now_page_callback() {
+function check_avablity_book_now_page_callback()
+{
     check_ajax_referer('rvbs_booking_nonce', 'nonce');
 
     global $wpdb;
@@ -235,6 +236,39 @@ function check_avablity_book_now_page_callback() {
     $available_lots = $wpdb->get_results($query);
     $is_date_available = !empty($available_lots);
 
+
+    // Step 2: Fetch all unavailable dates for the calendar
+    $unavailable_dates_query = $wpdb->prepare(
+        "
+        SELECT DISTINCT rb.check_in, rb.check_out
+        FROM $table_bookings rb
+        INNER JOIN $table_lots rl ON rb.post_id = rl.post_id AND rb.lot_id = rl.id
+        WHERE rb.post_id = %d
+        AND rb.status IN ('pending', 'confirmed')
+        AND rl.is_available = 1
+        AND rl.is_trash = 0
+        AND rl.status = 'confirmed'",
+        $post_id
+    );
+    $booked_ranges = $wpdb->get_results($unavailable_dates_query);
+    $unavailable_dates = [];
+
+    foreach ($booked_ranges as $range) {
+        $start = new DateTime($range->check_in);
+        $end = new DateTime($range->check_out);
+        $end->modify('+1 day'); // Include the checkout day as unavailable
+
+        $interval = new DateInterval('P1D');
+        $date_range = new DatePeriod($start, $interval, $end);
+
+        foreach ($date_range as $date) {
+            $unavailable_dates[] = $date->format('Y-m-d');
+        }
+    }
+    $unavailable_dates = array_unique($unavailable_dates); // Remove duplicates
+
+
+
     // get the max children pets and adults from the post meta
     $price = floatval(get_post_meta($post_id, '_rv_lots_price', true)) ?: 20.00;
 
@@ -242,10 +276,10 @@ function check_avablity_book_now_page_callback() {
 
     // var_dump(get_post_meta($post_id));
     $max_children = get_post_meta($post_id, 'max_children', true);
-$max_pets = get_post_meta($post_id, 'max_pets', true);
+    $max_pets = get_post_meta($post_id, 'max_pets', true);
     // Step 2: Dynamically calculate guest capacities from post meta
-  
- // Default to 999 if not set
+
+    // Default to 999 if not set
 
     $is_guest_capacity_ok = ($adults <= $max_adults && $children <= $max_children && $pets <= $max_pets);
     $guest_error = '';
@@ -267,7 +301,10 @@ $max_pets = get_post_meta($post_id, 'max_pets', true);
 
     // Step 4: Combine results
     if ($is_date_available && $is_guest_capacity_ok && $is_length_ok) {
-        wp_send_json_success(array('html' => 'available'));
+         wp_send_json_success(array(
+            'html' => 'available',
+            'unavailable_dates' => $unavailable_dates // Send unavailable dates
+        ));
     } else {
         $error_message = '';
         if (!$is_date_available) $error_message = 'Dates not available.';
@@ -276,10 +313,18 @@ $max_pets = get_post_meta($post_id, 'max_pets', true);
 
         wp_send_json_success(array(
             'html' => 'unavailable',
-            'message' => $error_message ?: 'Unknown availability issue.'
+            'message' => $error_message ?: 'Unknown availability issue.',
+            'unavailable_dates' => $unavailable_dates // Send unavailable dates even on failure
         ));
     }
 }
+add_action('wp_ajax_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
+add_action('wp_ajax_nopriv_check_avablity_book_now_page', 'check_avablity_book_now_page_callback');
+
+
+
+
+// function to add the booking abavlity check for book now page
 // Book lot AJAX handler
 function rvbs_book_lot()
 {

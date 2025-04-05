@@ -16,7 +16,7 @@ function updateGuests(type, change) {
     hiddenInput.value = newValue;
     wrapper.style.display = newValue > 0 ? 'flex' : 'none';
     updateGuestSummary();
-    checkAvailability(jQuery('#check_in').val(), jQuery('#check_out').val(), false); // Use jQuery instead of $
+    checkAvailability(jQuery('#check_in').val(), jQuery('#check_out').val(), false);
 }
 
 function updateGuestSummary() {
@@ -30,7 +30,6 @@ function updateGuestSummary() {
     document.getElementById("guestSummary").innerText = summary.length ? summary.join(", ") : "Select Guests";
 }
 
-// Define checkAvailability globally
 function checkAvailability(check_in, check_out, openCalendarOnFail = false) {
     jQuery.ajax({
         url: bookingData.ajaxUrl,
@@ -51,13 +50,20 @@ function checkAvailability(check_in, check_out, openCalendarOnFail = false) {
             if (response.success && response.data.html === 'available') {
                 jQuery('#submit-btn').prop('disabled', false).text(bookingData.useSessionData ? 'Update' : 'Add to Cart');
                 jQuery('#dateError').text('Available for this date').css('color', 'green');
-                window.isAvailable = true; // Store in global scope
+                window.isAvailable = true;
             } else {
                 jQuery('#submit-btn').prop('disabled', true).text('Unavailable');
                 const errorMsg = response.data.message || 'Not available for this date';
                 jQuery('#dateError').text(errorMsg).css('color', 'red');
                 window.isAvailable = false;
             }
+
+            // Update Flatpickr with unavailable dates
+            if (response.data.unavailable_dates) {
+                window.fpInstance.set('disable', response.data.unavailable_dates.map(date => new Date(date)));
+                window.fpInstance.redraw(); // Redraw the calendar to reflect changes
+            }
+
             if (openCalendarOnFail) window.openCalendar();
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -94,7 +100,7 @@ jQuery(document).ready(function($) {
     console.log('Booking Data:', bookingData);
     console.log('Check Availability Action:', checkAvailabilityAction);
 
-    window.isAvailable = false; // Global scope for isAvailable
+    window.isAvailable = false;
 
     document.getElementById("guestDropdownBtn").addEventListener("click", function(event) {
         event.stopPropagation();
@@ -141,11 +147,13 @@ jQuery(document).ready(function($) {
         $('.fw-bold span:last').text(`$${total.toFixed(2)}`);
     }
 
+    // Initialize Flatpickr with disable functionality
     window.fpInstance = flatpickr("#dateRange", {
         mode: "range",
         dateFormat: "Y-m-d",
         minDate: "today",
         defaultDate: [initialCheckIn, initialCheckOut],
+        disable: [], // Initially empty, will be updated by AJAX
         onChange: function(selectedDates) {
             if (selectedDates.length === 2) {
                 const formatDate = date => date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
@@ -172,53 +180,6 @@ jQuery(document).ready(function($) {
     $('#length_ft').on('change', function() {
         checkAvailability($('#check_in').val(), $('#check_out').val(), false);
     });
- 
-    // $('#booking-form').on('submit', function(e) {
-    //     e.preventDefault();
-    //     if (!window.isAvailable) {
-    //         $('#dateError').text('Please select available dates and options').css('color', 'red');
-    //         window.openCalendar();
-    //         return;
-    //     }
-
-    //     const formData = new FormData(this);
-    //     formData.append('action', 'add_to_cart');
-    //     formData.append('_ajax_nonce', nonce);
-    //     formData.append('edit_mode', useSessionData ? 'true' : 'false');
-
-    //     $.ajax({
-    //         type: 'POST',
-    //         url: ajaxUrl,
-    //         data: formData,
-    //         processData: false,
-    //         contentType: false,
-    //         beforeSend: function() {
-    //             $('#submit-btn').text('Processing...').prop('disabled', true);
-    //         },
-    //         success: function(response) {
-    //             if (response.success) {
-    //                 $('#booking-form').prepend(`<p class="success-message" style="color: green;">${response.data.message}</p>`);
-    //                 setTimeout(() => $('.success-message').remove(), 3000);
-    //                 let formattedPrice = parseFloat(response.data.total_price).toFixed(2);
-    //                 $('.cart-count').text(response.data.cart_count);
-    //                 $('.custom-cart-link a').html(`
-    //                     <span class="cart-total-price">$${formattedPrice}</span>
-    //                     <i class="fa fa-shopping-cart"></i>
-    //                     <span class="cart-count">${response.data.cart_count}</span>
-    //                 `);
-    //             } else {
-    //                 $('#booking-form').prepend(`<p class="error-message" style="color: red;">Error: ${response.data.message || 'Failed to process'}</p>`);
-    //             }
-    //         },
-    //         error: function(jqXHR, textStatus, errorThrown) {
-    //             console.error('AJAX Error:', textStatus, errorThrown);
-    //             $('#booking-form').prepend('<p class="error-message" style="color: red;">An error occurred. Please try again.</p>');
-    //         },
-    //         complete: function() {
-    //             $('#submit-btn').text(useSessionData ? 'Update' : 'Add to Cart').prop('disabled', !window.isAvailable);
-    //         }
-    //     });
-    // });
 
     if (initialCheckIn && initialCheckOut) {
         checkAvailability(initialCheckIn, initialCheckOut, false);
@@ -238,6 +199,4 @@ jQuery(document).ready(function($) {
         $('#petsInput').val(pets);
         updateGuestSummary();
     }
-
-    // Rest of your filterRVLots function remains unchanged
 });
