@@ -104,6 +104,8 @@ function rvbs_register_custom_taxonomies()
         'rewrite'           => array('slug' => 'park-feature'),
         'show_in_rest'      => true,
     );
+
+    // add park Length  taxonomy
     register_taxonomy('park_feature', array('rv-lots'), $park_features_args);
 
     // Site Amenities
