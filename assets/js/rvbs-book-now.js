@@ -64,13 +64,16 @@ function checkAvailability(check_in, check_out, openCalendarOnFail = false) {
                 window.fpInstance.redraw(); // Redraw the calendar to reflect changes
             }
 
-            if (openCalendarOnFail) window.openCalendar();
+            // if (openCalendarOnFail) window.openCalendar();
         },
         error: function(jqXHR, textStatus, errorThrown) {
             jQuery('#submit-btn').prop('disabled', true).text('Unavailable');
             jQuery('#dateError').text('Error checking availability').css('color', 'red');
             window.isAvailable = false;
-            if (openCalendarOnFail) window.openCalendar();
+            if(response.data.html == "unavailable" && response.data.message =="Dates not available.")  {
+
+                if (openCalendarOnFail) window.openCalendar();
+            }
             console.error('AJAX Error:', textStatus, errorThrown);
         }
     });
