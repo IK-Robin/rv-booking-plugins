@@ -272,11 +272,11 @@ function check_avablity_book_now_page_callback()
     // get the max children pets and adults from the post meta
     $price = floatval(get_post_meta($post_id, '_rv_lots_price', true)) ?: 20.00;
 
-    $max_adults = get_post_meta($post_id, 'max_adults', true);
+    $max_adults = get_post_meta($post_id, 'max_adults', true)? get_post_meta($post_id, 'max_adults', true) : 2;
 
     // var_dump(get_post_meta($post_id));
-    $max_children = get_post_meta($post_id, 'max_children', true);
-    $max_pets = get_post_meta($post_id, 'max_pets', true);
+    $max_children = get_post_meta($post_id, 'max_children', true) ? get_post_meta($post_id, 'max_children', true) : 2;
+    $max_pets = get_post_meta($post_id, 'max_pets', true) ? get_post_meta($post_id, 'max_pets', true) : 1;
     // Step 2: Dynamically calculate guest capacities from post meta
 
     // Default to 999 if not set
@@ -289,7 +289,7 @@ function check_avablity_book_now_page_callback()
 
     // Step 3: Dynamically calculate max length from park_length taxonomy
     $park_lengths = wp_get_post_terms($post_id, 'park_length', array('fields' => 'names'));
-    $max_length = 999; // Default to 999 if no term is set (effectively no limit)
+    $max_length = 45; // Default to 999 if no term is set (effectively no limit)
     if (!empty($park_lengths) && !is_wp_error($park_lengths)) {
         // Extract numeric value from the first term (e.g., "40 ft" -> 40)
         $first_length = $park_lengths[0];
