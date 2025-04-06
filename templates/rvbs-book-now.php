@@ -20,6 +20,57 @@ if (!$post_id || !$check_in || !$check_out) {
     exit;
 }
 
+
+
+
+// Validate and sanitize dates
+function sanitize_and_validate_date($date_str, $is_check_out = false, $check_in_str = '') {
+    try {
+        $date = new DateTime($date_str);
+        // Ensure date is not before today
+        $today = new DateTime('today');
+        if ($date < $today) {
+            return $today;
+        }
+        return $date;
+    } catch (Exception $e) {
+        // If invalid, fallback to a valid date
+        $today = new DateTime('today');
+        if ($is_check_out && $check_in_str) {
+            // For check_out, fallback to check_in + 1 day if check_in is valid
+            try {
+                $check_in_date = new DateTime($check_in_str);
+                $check_in_date->modify('+1 day');
+                return $check_in_date;
+            } catch (Exception $e) {
+                return $today;
+            }
+        }
+        return $today;
+    }
+}
+
+// Process dates
+$check_in_date = sanitize_and_validate_date($check_in, false);
+$check_out_date = sanitize_and_validate_date($check_out, true, $check_in);
+
+// Ensure check_out is after check_in
+if ($check_out_date <= $check_in_date) {
+    $check_out_date = clone $check_in_date;
+    $check_out_date->modify('+1 day');
+}
+
+// Convert back to strings for use in the template
+$check_in = $check_in_date->format('Y-m-d');
+$check_out = $check_out_date->format('Y-m-d');
+
+// Fetch RV lot post and redirect if invalid
+$lot = get_post($post_id);
+if (!$lot || $lot->post_type !== 'rv-lots') {
+    wp_redirect(home_url('/search-rv/'));
+    exit;
+}
+
 // Determine if we should load session data
 $session_data = [];
 $use_session_data = false;
