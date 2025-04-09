@@ -191,7 +191,7 @@ $is_fse_theme = wp_is_block_theme();
                                 // Fetch initial 10 posts
                                 $query = new WP_Query(array(
                                     'post_type'      => 'rv-lots',
-                                    'posts_per_page' => 10,
+                                    'posts_per_page' => 5,
                                     'paged'          => 1
                                 ));
 

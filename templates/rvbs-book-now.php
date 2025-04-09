@@ -64,6 +64,20 @@ if ($check_out_date <= $check_in_date) {
 $check_in = $check_in_date->format('Y-m-d');
 $check_out = $check_out_date->format('Y-m-d');
 
+// Check if dates changed and update URL if necessary
+if ($check_in !== sanitize_text_field($_GET['check_in']) || $check_out !== sanitize_text_field($_GET['check_out'])) {
+    $new_url = add_query_arg(array(
+        'campsite' => $post_id,
+        'check_in' => $check_in,
+        'check_out' => $check_out,
+        'adults' => isset($_GET['adults']) ? intval($_GET['adults']) : 1,
+        'children' => isset($_GET['children']) ? intval($_GET['children']) : 0,
+        'pets' => isset($_GET['pets']) ? intval($_GET['pets']) : 0,
+        'length_ft' => isset($_GET['length_ft']) ? intval($_GET['length_ft']) : 0,
+    ), home_url('/booknow/'));
+    wp_redirect($new_url);
+    exit;
+}
 // Fetch RV lot post and redirect if invalid
 $lot = get_post($post_id);
 if (!$lot || $lot->post_type !== 'rv-lots') {
@@ -76,10 +90,11 @@ $session_data = [];
 $use_session_data = false;
 
 // Check if URL has campsite or edit, and if session has matching campsite
-if ((isset($_GET['campsite']) || $edit_mode) && 
-    isset($_SESSION['cart']) && 
-    is_array($_SESSION['cart']) && 
-    isset($_SESSION['cart'][$post_id])) {
+if ((isset($_GET['campsite']) || $edit_mode) &&
+    isset($_SESSION['cart']) &&
+    is_array($_SESSION['cart']) &&
+    isset($_SESSION['cart'][$post_id])
+) {
     $session_data = $_SESSION['cart'][$post_id];
     $use_session_data = true;
 }
@@ -101,6 +116,7 @@ $is_fse_theme = wp_is_block_theme();
 
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
+
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -168,7 +184,9 @@ $is_fse_theme = wp_is_block_theme();
                                     $thumbnail_count++;
                         ?>
                                     <img src="<?php echo esc_url($thumbnail_url); ?>" class="img-fluid rounded" style="width: 100px; height: 75px; object-fit: cover;" alt="Thumbnail">
-                        <?php endif; endforeach; endif; ?>
+                        <?php endif;
+                            endforeach;
+                        endif; ?>
                         <?php if ($thumbnail_count > 0) : ?>
                             <button class="btn btn-outline-secondary btn-sm align-self-center">View <?php echo $thumbnail_count; ?> Photos</button>
                         <?php endif; ?>
@@ -183,21 +201,43 @@ $is_fse_theme = wp_is_block_theme();
                             foreach ($amenities as $amenity) :
                                 $icon = '';
                                 switch (strtolower($amenity->name)) {
-                                    case '30-amp': $icon = '<i class="bi bi-plug"></i>'; break;
-                                    case '50-amp': $icon = '<i class="bi bi-plug-fill"></i>'; break;
-                                    case 'back-in': $icon = '<i class="bi bi-arrow-left-circle"></i>'; break;
-                                    case 'charcoal grill': $icon = '<i class="bi bi-fire"></i>'; break;
-                                    case 'electricity': $icon = '<i class="bi bi-lightning"></i>'; break;
-                                    case 'picnic table': $icon = '<i class="bi bi-table"></i>'; break;
-                                    case 'sewer hook-up': $icon = '<i class="bi bi-water"></i>'; break;
-                                    case 'water hook-up': $icon = '<i class="bi bi-droplet"></i>'; break;
-                                    case 'wi-fi': $icon = '<i class="bi bi-wifi"></i>'; break;
-                                    case '20-amp': $icon = '<i class="bi bi-plug"></i>'; break;
-                                    default: $icon = '<i class="bi bi-check-circle"></i>';
+                                    case '30-amp':
+                                        $icon = '<i class="bi bi-plug"></i>';
+                                        break;
+                                    case '50-amp':
+                                        $icon = '<i class="bi bi-plug-fill"></i>';
+                                        break;
+                                    case 'back-in':
+                                        $icon = '<i class="bi bi-arrow-left-circle"></i>';
+                                        break;
+                                    case 'charcoal grill':
+                                        $icon = '<i class="bi bi-fire"></i>';
+                                        break;
+                                    case 'electricity':
+                                        $icon = '<i class="bi bi-lightning"></i>';
+                                        break;
+                                    case 'picnic table':
+                                        $icon = '<i class="bi bi-table"></i>';
+                                        break;
+                                    case 'sewer hook-up':
+                                        $icon = '<i class="bi bi-water"></i>';
+                                        break;
+                                    case 'water hook-up':
+                                        $icon = '<i class="bi bi-droplet"></i>';
+                                        break;
+                                    case 'wi-fi':
+                                        $icon = '<i class="bi bi-wifi"></i>';
+                                        break;
+                                    case '20-amp':
+                                        $icon = '<i class="bi bi-plug"></i>';
+                                        break;
+                                    default:
+                                        $icon = '<i class="bi bi-check-circle"></i>';
                                 }
                         ?>
                                 <div><?php echo $icon; ?> <?php echo esc_html($amenity->name); ?></div>
-                        <?php endforeach; else : ?>
+                            <?php endforeach;
+                        else : ?>
                             <p>No amenities available.</p>
                         <?php endif; ?>
                     </div>
@@ -334,31 +374,70 @@ $is_fse_theme = wp_is_block_theme();
     </div>
 
     <style>
-        .calendar-container { background: white; padding: 0; border-radius: 8px; text-align: center; position: relative; }
-        .date-display { display: flex; justify-content: center; align-items: center; border: 1px solid #ccc; border-radius: 5px; padding: 10px; width: 100%; cursor: pointer; background: white; color: #999; font-size: 16px; }
-        .date-display.active { color: black; }
-        .date-display span { margin: 0 5px; color: black; }
-        .hidden-inputs { display: none; }
-        .flatpickr-calendar { top: 100% !important; left: 50% !important; transform: translateX(-50%) !important; }
+        .calendar-container {
+            background: white;
+            padding: 0;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+        }
+
+        .date-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            width: 100%;
+            cursor: pointer;
+            background: white;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .date-display.active {
+            color: black;
+        }
+
+        .date-display span {
+            margin: 0 5px;
+            color: black;
+        }
+
+        .hidden-inputs {
+            display: none;
+        }
+
+        .flatpickr-calendar {
+            top: 100% !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+        }
+
         .flatpickr-day.disabled {
-    background-color: #ffcccc !important; /* Light red background */
-    color: #333 !important; /* Dark text for contrast */
-    cursor: not-allowed;
+            background-color: #ffcccc !important;
+            /* Light red background */
+            color: #333 !important;
+            /* Dark text for contrast */
+            cursor: not-allowed;
 
-}
+        }
 
-.flatpickr-day.disabled:hover {
-    background-color: #ff9999 !important; /* Slightly darker red on hover */
-}
-.flatpickr-day.nextMonthDay{
-    color: #000 !important;
-}
+        .flatpickr-day.disabled:hover {
+            background-color: #ff9999 !important;
+            /* Slightly darker red on hover */
+        }
+
+        .flatpickr-day.nextMonthDay {
+            color: #000 !important;
+        }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 
     <?php
-    
+
 
     if (!$is_fse_theme) {
         get_footer();
@@ -368,4 +447,5 @@ $is_fse_theme = wp_is_block_theme();
     wp_footer();
     ?>
 </body>
+
 </html>

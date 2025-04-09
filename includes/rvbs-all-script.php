@@ -18,7 +18,9 @@ function rvbs_add_all_script()
         wp_localize_script('rvbs-search-rv', 'rvbs_serch_rv', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'action' => 'load_more_posts',
-            'filter_rv_lots' => 'filter_rv_lots'
+            'filter_rv_lots' => 'filter_rv_lots',
+            
+            'nonce' => wp_create_nonce('load_more_posts_nonce'),
         ]);
     }
 
