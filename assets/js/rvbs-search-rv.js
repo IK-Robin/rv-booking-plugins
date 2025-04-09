@@ -208,4 +208,49 @@
 
             // Initial check for reset buttons visibility
             updateResetButtonsVisibility();
+
+
+
+            // load more post when on click the load more button
+            let currentPage = 1;
+            let loading = false;
+        
+            $('#load_more').on('click', function(e) {
+                e.preventDefault();
+                
+                if (loading) return;
+                loading = true;
+                
+                $(this).text('Loading...'); // Show loading state
+                
+                $.ajax({
+                    url: rvbs_serch_rv.ajax_url, // WordPress AJAX URL
+                    type: 'POST',
+                    data: {
+                        action: rvbs_serch_rv.action,
+                        page: currentPage + 1,
+                        nonce: rvbs_serch_rv.nonce // You'll need to localize this
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#show_aval_room').append(response.data.html); // Append new posts
+                            currentPage++;
+                            
+                            // Hide button if we've reached max pages
+                            if (currentPage >= response.data.max_pages) {
+                                $('#load_more').hide();
+                            }
+                        } else {
+                            $('#load_more').text('No More Posts');
+                        }
+                    },
+                    error: function() {
+                        alert('Error loading posts');
+                    },
+                    complete: function() {
+                        $('#load_more').text('Load More');
+                        loading = false;
+                    }
+                });
+            });
         });
