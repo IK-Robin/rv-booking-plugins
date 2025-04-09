@@ -39,6 +39,10 @@ require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-db-handel/rvbs-checkout-b
 require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs-filter.php';
 
 
+// add the all rvbs_app_php_support.php file here
+require_once RVBS_BOOKING_PLUGIN_DIR . '/includes/rvbs_all_php_support.php';
+
+
 // function my_custom_plugin_add_template($templates) {
 //     $templates['my-custom-template.php'] = 'Search Rv';
 //     return $templates;
