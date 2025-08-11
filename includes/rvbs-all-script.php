@@ -55,6 +55,9 @@ function rvbs_add_all_script()
         'nonce' => wp_create_nonce('rvbs_checkout_nonce')
     ));
 
+        // add booking checkout page js for testin woo checkout
+        wp_enqueue_script('rvbs-woo-checkout-page',plugin_dir_url(__FILE__) . '../assets/js/rvbs-booking-checkout.js',['jquery'],RVBS_PLUGIN_VER,true);
+
     //add the book now js
 
 
@@ -107,6 +110,10 @@ function rvbs_add_all_script()
             'nonce' => wp_create_nonce('rvbs_booking_nonce'),
         ));
     }
+
+
+
+
 }
 add_action('wp_enqueue_scripts', 'rvbs_add_all_script');
 
