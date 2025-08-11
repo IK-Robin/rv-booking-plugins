@@ -611,40 +611,38 @@ $countries = [
     jQuery(document).ready(function($) {
         $('#checkout-form').on('submit', function(e) {
             e.preventDefault();
-            console.log('hel')
-            window.location.href = '<?php echo esc_url(home_url('/checkout-2/')); ?>?booking_id='+"111";
-            // const formData = new FormData(this);
-            // formData.append('action', 'rvbs_process_checkout');
-            // formData.append('_ajax_nonce', rvbs_checkout.nonce);
+            const formData = new FormData(this);
+            formData.append('action', 'rvbs_process_checkout');
+            formData.append('_ajax_nonce', rvbs_checkout.nonce);
 
-            // $.ajax({
-            //     type: 'POST',
-            //     url: rvbs_checkout.ajax_url,
-            //     data: formData,
-            //     processData: false,
-            //     contentType: false,
-            //     beforeSend: function() {
-            //         $('.place-order-btn').text('Processing...').prop('disabled', true);
-            //     },
-            //     success: function(response) {
-            //         if (response.success) {
-            //             $('#checkout-form').prepend('<div class="success-message">' + response.data.message + '</div>');
-            //             // Redirect to confirmation page
-            //             setTimeout(function() {
-            //                 window.location.href = '<?php echo esc_url(home_url('/booking-confirmation/')); ?>?booking_id=' + response.data.booking_id;
-            //             }, 2000);
-            //         } else {
-            //             $('#checkout-form').prepend('<div class="error-message">Error: ' + (response.data.message || 'Failed to process booking') + '</div>');
-            //         }
-            //     },
-            //     error: function(jqXHR, textStatus, errorThrown) {
-            //         console.error('AJAX Error:', textStatus, errorThrown);
-            //         $('#checkout-form').prepend('<div class="error-message">An error occurred. Please try again.</div>');
-            //     },
-            //     complete: function() {
-            //         $('.place-order-btn').text('Place Order').prop('disabled', false);
-            //     }
-            // });
+            $.ajax({
+                type: 'POST',
+                url: rvbs_checkout.ajax_url,
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function() {
+                    $('.place-order-btn').text('Processing...').prop('disabled', true);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#checkout-form').prepend('<div class="success-message">' + response.data.message + '</div>');
+                        // Redirect to confirmation page
+                        setTimeout(function() {
+                            window.location.href = '<?php echo esc_url(home_url('/booking-confirmation/')); ?>?booking_id=' + response.data.booking_id;
+                        }, 2000);
+                    } else {
+                        $('#checkout-form').prepend('<div class="error-message">Error: ' + (response.data.message || 'Failed to process booking') + '</div>');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX Error:', textStatus, errorThrown);
+                    $('#checkout-form').prepend('<div class="error-message">An error occurred. Please try again.</div>');
+                },
+                complete: function() {
+                    $('.place-order-btn').text('Place Order').prop('disabled', false);
+                }
+            });
         });
     });
     </script>

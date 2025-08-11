@@ -1,4 +1,6 @@
 
+        // connected to teh rvbs_all-script.php
+        
         window.openCalendar = function() {
             if (window.fpInstance && typeof window.fpInstance.open === 'function') {
                 window.fpInstance.open();

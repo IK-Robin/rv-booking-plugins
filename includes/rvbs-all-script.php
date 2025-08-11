@@ -102,7 +102,7 @@ function rvbs_add_all_script()
             'children' => $children,
          
             'pets' => $pets,
-            'checkAvailabilityAction' => 'check_avablity_book_now_page', // Corrected action name
+            'checkAvailabilityAction' => 'check_avablity_book_now_page', // this action connected in the function.php file
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('rvbs_booking_nonce'),
         ));
