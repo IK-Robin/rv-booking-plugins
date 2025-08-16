@@ -5,6 +5,7 @@ jQuery(document).ready(function($) {
         let bookingId = $(this).data('booking-id');
         let amount    = $(this).data('amount');
 
-        window.location.href = '/?rvb_payment=yes&amount=' + amount + '&booking_id=' + bookingId;
+       window.location.href = '<?php echo esc_url(home_url('/')); ?>?rvb_payment=yes&amount=' + amount + '&booking_id=' + bookingId;
+
     });
 });
