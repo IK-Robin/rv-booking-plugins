@@ -1,6 +1,7 @@
 <?php
 /*
 Template Name: Search RV
+link: rvbs-search-rv.js
 */
 
 // Check if the theme is block-based (Full Site Editing)
