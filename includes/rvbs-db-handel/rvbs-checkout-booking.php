@@ -27,6 +27,8 @@ function rvbs_enqueue_checkout_scripts() {
 // AJAX handler for checkout
 add_action('wp_ajax_rvbs_process_checkout', 'rvbs_process_checkout');
 add_action('wp_ajax_nopriv_rvbs_process_checkout', 'rvbs_process_checkout');
+
+
 function rvbs_process_checkout() {
     global $wpdb;
 
