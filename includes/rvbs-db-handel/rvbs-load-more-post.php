@@ -37,7 +37,12 @@ function load_more_posts() {
                             <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
                         </h5>
                         <p class="card-text"><?php the_excerpt(); ?></p>
-                        <a href="<?php the_permalink(); ?>" class="btn btn-primary">Read More</a>
+
+                        <a href="<?php echo home_url('/booknow?campsite=' . get_the_ID() . '&check_in=' . date('Y-m-d') . '&check_out=' . date('Y-m-d', strtotime('+1 day'))); ?>"
+                                                        class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                                                        Book Now
+                                                    </a>
+                        
                     </div>
                     <div class="col-md-3">
                         <p class="price">Starting at <strong>$20.00</strong> /night</p>

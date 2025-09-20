@@ -14,7 +14,7 @@ if (!session_id()) {
 // Get cart data from session
 $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 $cart_total = 0;
-
+print_r($cart);
 // Redirect to cart if empty
 if (empty($cart)) {
     wp_redirect(home_url('/shopping-cart/'));

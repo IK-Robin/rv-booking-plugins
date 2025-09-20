@@ -20,6 +20,7 @@ if (!session_id()) {
 
 $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 $cart_total = 0;
+// var_dump($cart);
 ?>
 
 <!DOCTYPE html>
@@ -164,7 +165,7 @@ $cart_total = 0;
                 <div class="cart-summary">
                     <h2>Summary</h2>
                     <p>Subtotal: $<span class="cart-total"><?php echo number_format($cart_total, 2); ?></span></p>
-                    <a href="<?php echo home_url('/checkout/');?>" class="checkout-btn btn">Proceed to Checkout</a>
+                    <a id="ikr_proceed_to_checkout" href="" class="checkout-btn btn">Proceed to Checkout</a>
                 </div>
             </div>
         <?php else : ?>
