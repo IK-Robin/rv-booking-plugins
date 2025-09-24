@@ -23,3 +23,5 @@ complite basic design
 14. add a submanue to the rv lot main manu  as tax then there assist how to enable the tax in woo  
 15. correct the error when the plugin  database delet and the rv-lot all post are stail showing then then show a error on "date are not abavale" error 
 to fix this error only correct one thing if the post is go to the trash or draft and the database table "rvbs_rv_lots" are full empity then add the nessasery data in the table on make it publish not change only is trash or deleted_post  add full data again in the post 
+
+16. add tax in the search rv page and chart page if tax enable in woo commerce. 
